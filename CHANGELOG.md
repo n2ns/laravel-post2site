@@ -2,7 +2,7 @@
 
 All notable changes to Laravel Post2Site are documented in this file. The format follows [Keep a Changelog](https://keepachangelog.com/).
 
-## Unreleased
+## [0.1.0] - 2026-06-17
 
 ### Added
 

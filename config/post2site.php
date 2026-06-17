@@ -9,7 +9,9 @@ use N2ns\LaravelPost2Site\Support\ConfiguredPublicUrlResolver;
 use N2ns\LaravelPost2Site\Support\NullContentScopeValidator;
 
 return [
+    'version' => '0.1.0',
     'route_prefix' => env('POST2SITE_ROUTE_PREFIX', 'api/v1/mcp'),
+
     'route_middleware' => ['api'],
 
     // Rate limit applied to every Post2Site route, in "max,minutes" form.

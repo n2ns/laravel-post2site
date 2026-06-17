@@ -1,5 +1,6 @@
 {
     "name": "n2ns/laravel-post2site",
+    "version": "0.1.0",
     "description": "Laravel backend package for the N2N Post2Site Content Publishing API Contract.",
     "type": "library",
     "license": "MIT",

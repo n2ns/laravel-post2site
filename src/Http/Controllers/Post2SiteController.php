@@ -29,8 +29,10 @@ class Post2SiteController extends Controller
     public function capabilities(): JsonResponse
     {
         return response()->json([
+            'package_version' => config('post2site.version', '0.1.0'),
             'contract' => 'Content Publishing API Contract',
             'contract_version' => '1.0',
+
             'base_path' => '/'.trim(config('post2site.route_prefix'), '/'),
             'auth' => ['required_headers' => [config('post2site.auth.header', 'X-API-KEY')]],
             'endpoints' => [
