@@ -3,7 +3,7 @@
 [![Latest Stable Version](https://img.shields.io/packagist/v/n2ns/laravel-post2site)](https://packagist.org/packages/n2ns/laravel-post2site)
 [![Total Downloads](https://img.shields.io/packagist/dt/n2ns/laravel-post2site)](https://packagist.org/packages/n2ns/laravel-post2site)
 [![License](https://img.shields.io/github/license/n2ns/laravel-post2site)](https://github.com/n2ns/laravel-post2site/blob/main/LICENSE)
-[![PHP Version Support](https://img.shields.io/packagist/dependency-v/n2ns/laravel-post2site/php)](https://packagist.org/packages/n2ns/laravel-post2site)
+[![PHP Version](https://img.shields.io/badge/PHP-%3E%3D%208.2-8892bf.svg)](https://www.php.net)
 [![Laravel Version Support](https://img.shields.io/badge/Laravel-12%20%7C%2013-red)](https://laravel.com)
 
 
