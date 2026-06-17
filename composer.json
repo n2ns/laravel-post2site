@@ -1,0 +1,47 @@
+{
+    "name": "n2ns/laravel-post2site",
+    "description": "Laravel backend package for the N2N Post2Site Content Publishing API Contract.",
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "php": "^8.2",
+        "illuminate/support": "^12.0 || ^13.0",
+        "illuminate/routing": "^12.0 || ^13.0",
+        "illuminate/http": "^12.0 || ^13.0",
+        "illuminate/validation": "^12.0 || ^13.0",
+        "illuminate/database": "^12.0 || ^13.0",
+        "illuminate/queue": "^12.0 || ^13.0",
+        "illuminate/console": "^12.0 || ^13.0",
+        "illuminate/bus": "^12.0 || ^13.0",
+        "illuminate/hashing": "^12.0 || ^13.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^10.0",
+        "phpunit/phpunit": "^11.5",
+        "laravel/pint": "^1.18"
+    },
+    "autoload": {
+        "psr-4": {
+            "N2ns\\LaravelPost2Site\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "N2ns\\LaravelPost2Site\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit",
+        "pint": "pint",
+        "pint:test": "pint --test"
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "N2ns\\LaravelPost2Site\\LaravelPost2SiteServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
