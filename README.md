@@ -1,5 +1,12 @@
 # Laravel Post2Site
 
+[![Latest Stable Version](https://img.shields.io/packagist/v/n2ns/laravel-post2site)](https://packagist.org/packages/n2ns/laravel-post2site)
+[![Total Downloads](https://img.shields.io/packagist/dt/n2ns/laravel-post2site)](https://packagist.org/packages/n2ns/laravel-post2site)
+[![License](https://img.shields.io/github/license/n2ns/laravel-post2site)](https://github.com/n2ns/laravel-post2site/blob/main/LICENSE)
+[![PHP Version Support](https://img.shields.io/packagist/dependency-v/n2ns/laravel-post2site/php)](https://packagist.org/packages/n2ns/laravel-post2site)
+[![Laravel Version Support](https://img.shields.io/badge/Laravel-12%20%7C%2013-red)](https://laravel.com)
+
+
 Laravel backend package for the N2N Post2Site Content Publishing API Contract. It lets a Laravel site securely accept content from the [`n2n-post2site`](https://github.com/n2ns/n2n-post2site) MCP client.
 
 It provides protected publishing routes, package-owned staging tables for drafts and translations, optional configurable publishing into host Eloquent models, custom `PublicationTarget` adapters for complex sites, and optional IndexNow submission after posts are published.
@@ -58,6 +65,11 @@ composer pint:test  # code style
 - [Changelog](CHANGELOG.md)
 - [Contributing](CONTRIBUTING.md)
 
-## License
+## 📄 License
 
-MIT. See [LICENSE](LICENSE).
+This project is licensed under the [MIT License](./LICENSE).
+
+---
+
+Built by [N2NS Lab](https://n2ns.com), the open-source lab of [datafrog.io](https://datafrog.io) for practical AI developer tools.
+
