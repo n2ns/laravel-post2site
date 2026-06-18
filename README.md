@@ -13,12 +13,12 @@ It provides protected publishing routes, package-owned staging tables for drafts
 
 The package is generic: `content_scope` is opaque `kind:key` metadata, and URL shape, scope validation, scope context, the publish target, and indexing are all host-bindable contracts. No host-specific categories are baked in.
 
-## Requirements
+## 📋 Requirements
 
 - PHP 8.2+
 - Laravel 12 or 13
 
-## Installation
+## 🚀 Installation
 
 ```bash
 composer require n2ns/laravel-post2site
@@ -28,9 +28,26 @@ php artisan migrate
 php artisan post2site:key "Production MCP"
 ```
 
-The command prints the plaintext API key once — store it as the MCP client's `N2N_API_KEY`. Point the client's `CONTENT_API_BASE_URL` at `https://your-host/<route_prefix>` (default route prefix `api/v1/mcp`).
+The command prints the plaintext API key once — store it as the MCP client's `CONTENT_API_KEY`. Point the client's `CONTENT_API_BASE_URL` at `https://your-host/<route_prefix>` (default route prefix `api/v1/mcp`).
 
-## Publishing modes
+Configure the [`n2n-post2site`](https://github.com/n2ns/n2n-post2site) MCP client to point at this host:
+
+```json
+{
+  "mcpServers": {
+    "n2n-post2site": {
+      "command": "npx",
+      "args": ["-y", "n2n-post2site"],
+      "env": {
+        "CONTENT_API_BASE_URL": "https://your-host/api/v1/mcp",
+        "CONTENT_API_KEY": "the-key-printed-above"
+      }
+    }
+  }
+}
+```
+
+## 📰 Publishing modes
 
 Set `POST2SITE_PUBLISHING_MODE` (or `post2site.publishing.mode`):
 
@@ -40,25 +57,25 @@ Set `POST2SITE_PUBLISHING_MODE` (or `post2site.publishing.mode`):
 
 See the [Host Integration Guide](docs/integration.md) for each mode.
 
-## Key behavior
+## 🔑 Key behavior
 
 - **Auth** — database-driver API keys are stored as deterministic SHA-256 hashes and matched via a unique index (O(1)); the static driver compares a single configured key.
 - **Rate limiting** — every route is throttled. Tune via `POST2SITE_RATE_LIMIT` (`max,minutes`, default `60,1`).
 - **Search** — `?q=` uses a `FULLTEXT` index on MySQL/MariaDB (created by the migration on those drivers) and falls back to `LIKE` elsewhere (e.g. SQLite).
 - **content_scope** — optional `kind:key`; required for the types in `content.scoped_types` (default `['guide']`) and prohibited for others. Kinds and key resolution are host-configurable.
 
-## Extension contracts
+## 🧩 Extension contracts
 
 Bound from `post2site.bindings` and overridable: `PostRepository`, `PublicationTarget`, `PublicUrlResolver`, `ContentScopeValidator`, `ScopeContextProvider`, `IndexingNotifier`. See [Architecture](docs/architecture.md).
 
-## Testing
+## 🧪 Testing
 
 ```bash
 composer test       # PHPUnit
 composer pint:test  # code style
 ```
 
-## Documentation
+## 📖 Documentation
 
 - [Host Integration Guide](docs/integration.md)
 - [Architecture](docs/architecture.md)
