@@ -23,7 +23,6 @@ The package is generic: `content_scope` is opaque `kind:key` metadata, and URL s
 ```bash
 composer require n2ns/laravel-post2site
 php artisan vendor:publish --tag=post2site-config
-php artisan vendor:publish --tag=post2site-migrations
 php artisan migrate
 php artisan post2site:key "Production MCP"
 ```
@@ -89,4 +88,3 @@ This project is licensed under the [MIT License](./LICENSE).
 ---
 
 Built by [N2NS Lab](https://n2ns.com), the open-source lab of [datafrog.io](https://datafrog.io) for practical AI developer tools.
-

@@ -12,7 +12,6 @@ php artisan vendor:publish --tag=post2site-config
 Using the package's own tables:
 
 ```bash
-php artisan vendor:publish --tag=post2site-migrations
 php artisan migrate
 php artisan post2site:key "Production MCP"
 ```
@@ -20,8 +19,6 @@ php artisan post2site:key "Production MCP"
 If you only need MCP drafting plus manual review, no host PHP is required:
 
 ```bash
-php artisan vendor:publish --tag=post2site-auth-migrations
-php artisan vendor:publish --tag=post2site-content-migrations
 php artisan migrate
 php artisan post2site:key "Production MCP"
 ```
@@ -30,7 +27,7 @@ php artisan post2site:key "Production MCP"
 POST2SITE_PUBLISHING_MODE=review
 ```
 
-`post2site-auth-migrations` publishes only the API key table. `post2site-content-migrations` publishes the post2site staging tables and never touches your existing article tables. `post2site-indexing-migrations` is only needed when IndexNow is enabled or you want to record submission state. The database driver stores the key's SHA-256 `key_hash` in `post2site_api_keys`; the command prints the plaintext key once.
+Package migrations are loaded automatically. If you need to customize them before running `migrate`, publish tags are still available: `post2site-auth-migrations` publishes only the API key table, `post2site-content-migrations` publishes the post2site staging tables and never touches your existing article tables, and `post2site-indexing-migrations` publishes the indexing submission table. The database driver stores the key's SHA-256 `key_hash` in `post2site_api_keys`; the command prints the plaintext key once.
 
 All Post2Site routes are rate limited. Tune via `POST2SITE_RATE_LIMIT` (`max,minutes`, default `60,1`):
 

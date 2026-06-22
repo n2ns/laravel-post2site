@@ -2,6 +2,13 @@
 
 All notable changes to Laravel Post2Site are documented in this file. The format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.1.1] - 2026-06-23
+
+### Changed
+
+- Load package migrations automatically so a normal `php artisan migrate` creates Post2Site tables after package installation.
+- Keep migration publish tags available for hosts that need to customize migrations before running them.
+
 ## [0.1.0] - 2026-06-17
 
 ### Added
