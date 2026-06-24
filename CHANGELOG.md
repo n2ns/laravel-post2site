@@ -4,6 +4,10 @@ All notable changes to Laravel Post2Site are documented in this file. The format
 
 ## [Unreleased]
 
+### Added
+
+- Add GitHub Sponsors metadata for repository and Composer package discovery.
+
 ## [0.2.1] - 2026-06-24
 
 ### Fixed

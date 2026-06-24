@@ -1,15 +1,19 @@
 # Blog Targets
 
-Post2Site targets Laravel 12 and 13. Supported targets are limited to packages with current Laravel support, a stable publishing surface, and a mapping that can be verified in tests.
+Post2Site core allows Laravel 12 and 13 through Composer constraints. The
+current locked test baseline validates Laravel 12; Laravel 13 host integrations
+should be verified in the consuming project until a Laravel 13 CI matrix is
+added. Supported targets are limited to packages with current Laravel support, a
+stable publishing surface, and a mapping that can be verified in tests.
 
 ## Current presets
 
-| Target | Status | Why |
-| --- | --- | --- |
-| `laravel_saas_kit` | First-party adapter | Uses the SaaS Kit content model directly: `blog_posts`, `blog_post_translations`, and product guides. |
-| `austintoddj_canvas` | Adapter preset | Uses Canvas `canvas_posts` and `canvas_users`. URL shape stays configurable because Canvas is frontend-agnostic. |
-| `bjuppa_laravel_blog` | Configurable preset | Current package supports Illuminate 12 and exposes a simple Eloquent `BlogEntry` model. |
-| `stephenjude_filament_blog` | Configurable preset | Current 5.x package targets modern PHP/Filament and has a simple post model. Host author/category requirements must be checked. |
+| Target | Status | Target Laravel support | Why |
+| --- | --- | --- | --- |
+| `laravel_saas_kit` | First-party adapter | Laravel 12 target app | Uses the SaaS Kit content model directly: `blog_posts`, `blog_post_translations`, and product guides. |
+| `austintoddj_canvas` | Adapter preset | Depends on installed Canvas version | Uses Canvas `canvas_posts` and `canvas_users`. URL shape stays configurable because Canvas is frontend-agnostic. |
+| `bjuppa_laravel_blog` | Configurable preset | Depends on installed package version | Current package exposes a simple Eloquent `BlogEntry` model. |
+| `stephenjude_filament_blog` | Configurable preset | Depends on installed Filament Blog version | Current 5.x package targets modern PHP/Filament and has a simple post model. Host author/category requirements must be checked. |
 
 ## Compatibility rule
 
@@ -62,7 +66,11 @@ The first adapter version does not add Post2Site API fields for Canvas tags or t
 
 ## Composer metadata
 
-Optional blog targets belong in `composer.json` `suggest`, not `require`. This keeps Post2Site installable in any Laravel app while still making supported integrations visible on Packagist.
+Optional blog targets belong in `composer.json` `suggest`, not `require`. This
+keeps Post2Site installable in any Laravel app while still making supported
+integrations visible in Composer metadata. Targets that are not yet indexed on
+Packagist, such as the first-party SaaS Kit package during its initial GitHub
+distribution phase, may appear as plain text until published.
 
 Current `suggest` entries should match supported presets only:
 

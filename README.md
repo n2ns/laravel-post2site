@@ -17,8 +17,12 @@ For common sites, Post2Site can also be activated through presets. The first-par
 
 ## 📋 Requirements
 
-- PHP 8.2+
-- Laravel 12 or 13
+- PHP 8.2+ with Laravel 12.
+- PHP 8.3+ with Laravel 13.
+
+The Composer constraints allow Laravel 12 and 13. The current locked test
+baseline validates Laravel 12; keep Laravel 13 host integrations under explicit
+project verification until a Laravel 13 CI matrix is added.
 
 ## 🚀 Installation
 
@@ -60,9 +64,9 @@ See the [Host Integration Guide](docs/integration.md) for each mode.
 
 ## 🧩 Blog targets
 
-Current Laravel 12 presets:
+Current presets:
 
-- `laravel_saas_kit` — first-party adapter. Supports blog posts and product guides.
+- `laravel_saas_kit` — first-party adapter. Supports blog posts and product guides. Target app currently uses Laravel 12.
 - `austintoddj_canvas` — adapter preset for `austintoddj/canvas`.
 - `bjuppa_laravel_blog` — configurable preset for `bjuppa/laravel-blog`.
 - `stephenjude_filament_blog` — configurable preset for `stephenjude/filament-blog` 5.x. Hosts still need to ensure author/category requirements fit their schema.

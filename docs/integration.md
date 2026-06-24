@@ -61,6 +61,10 @@ The preset:
 
 If `POST2SITE_SAAS_KIT_AUTHOR_ID` is omitted, the adapter uses `POST2SITE_SAAS_KIT_AUTHOR_EMAIL`, then the first `App\Models\User`. Publishing fails clearly if no author exists.
 
+SaaS Kit's current generated application targets Laravel 12. Post2Site core
+allows Laravel 12 and 13, but this preset should be treated as Laravel 12 until
+the generated app itself adds Laravel 13 support.
+
 ### bjuppa/laravel-blog
 
 For `bjuppa/laravel-blog`:
