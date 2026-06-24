@@ -4,6 +4,19 @@
 
 It is generic by design: `content_scope` is opaque `kind:key` metadata, and everything host-specific (URL shape, scope validation, scope context, the publish target, indexing) is a bindable contract. No host categories are baked in.
 
+## Presets
+
+`POST2SITE_PRESET` applies a named group of normal config values before contracts are bound. Presets are not separate execution paths; they are a safer way to select a known adapter/config combination.
+
+Current presets:
+
+- `laravel_saas_kit` — binds the SaaS Kit publication target, URL resolver, product scope validator, and product scope context provider.
+- `austintoddj_canvas` — binds the Canvas publication target and URL resolver.
+- `bjuppa_laravel_blog` — configures `ConfigurablePublicationTarget` for `Bjuppa\LaravelBlog\Eloquent\BlogEntry`.
+- `stephenjude_filament_blog` — configures `ConfigurablePublicationTarget` for `Stephenjude\FilamentBlog\Models\Post`.
+
+Keep presets thin. If a target needs relations, tenant logic, default categories, or non-trivial translation behavior, write an adapter instead of adding conditional logic to the core controller.
+
 ## Components
 
 - **Routes** (`routes/api.php`) — registered under `route_prefix` (default `api/v1/mcp`), behind the configured middleware, `throttle`, and the API-key middleware. One unauthenticated IndexNow key route is optional.
@@ -24,6 +37,26 @@ All are bound from `post2site.bindings` and overridable by the host:
 | `ContentScopeValidator` | `NullContentScopeValidator` | Validate that a `content_scope` key resolves to a real host entity. |
 | `ScopeContextProvider` | `ConfigScopeContextProvider` | Provide controlled context for a `content_scope` (and the list of available scopes). |
 | `IndexingNotifier` | `CompositeIndexingNotifier` | Submit published URLs to search engines (IndexNow). |
+
+## First-party SaaS Kit adapter
+
+The SaaS Kit adapter writes into the app's own public content tables:
+
+- `App\Models\BlogPost`
+- `App\Models\BlogPostTranslation`
+- `App\Models\Product`
+- `App\Models\User`
+
+Drafts still live in Post2Site staging tables until publish. On publish, the adapter upserts the public `BlogPost`, upserts the submitted locale in `BlogPostTranslation`, validates product guide scopes through the product model, and returns the canonical public URL.
+
+## Canvas adapter
+
+The Canvas adapter writes into the Canvas package tables through the configured models:
+
+- `Canvas\Models\Post`
+- `Canvas\Models\User`
+
+Drafts still live in Post2Site staging tables until publish. On publish, the adapter upserts a Canvas post by `slug` and Canvas `user_id`, generates a UUID for new posts, writes title/summary/body/featured image/published date, and returns the URL generated from `post2site.integrations.canvas.public_url_pattern`.
 
 ## Publishing modes (`publishing.mode`)
 

@@ -119,7 +119,7 @@ class Post2SiteValidationAndAuthTest extends TestCase
     public function test_capabilities_expose_content_scope_contract(): void
     {
         config()->set('post2site.content_scope.kinds', ['product', 'project']);
-        config()->set('post2site.content_scope.examples', ['product:evisa-helper']);
+        config()->set('post2site.content_scope.examples', ['product:example-app']);
         config()->set('post2site.content.scoped_types', ['guide']);
 
         $this->api()
@@ -127,7 +127,7 @@ class Post2SiteValidationAndAuthTest extends TestCase
             ->assertOk()
             ->assertJsonPath('content.content_scope.format', 'kind:key')
             ->assertJsonPath('content.content_scope.kinds', ['product', 'project'])
-            ->assertJsonPath('content.content_scope.examples', ['product:evisa-helper'])
+            ->assertJsonPath('content.content_scope.examples', ['product:example-app'])
             ->assertJsonPath('content.content_scope.required_for_types', ['guide']);
     }
 

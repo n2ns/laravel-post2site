@@ -1,6 +1,5 @@
 {
     "name": "n2ns/laravel-post2site",
-    "version": "0.1.1",
     "description": "Laravel backend package for the N2N Post2Site Content Publishing API Contract.",
     "type": "library",
     "license": "MIT",
@@ -21,6 +20,12 @@
         "phpunit/phpunit": "^11.5",
         "laravel/pint": "^1.18"
     },
+    "suggest": {
+        "n2ns/laravel-saas-kit": "Enables the POST2SITE_PRESET=laravel_saas_kit first-party adapter for SaaS Kit blog posts and product guides.",
+        "austintoddj/canvas": "Enables the POST2SITE_PRESET=austintoddj_canvas adapter for Canvas posts.",
+        "bjuppa/laravel-blog": "Enables the POST2SITE_PRESET=bjuppa_laravel_blog configurable publishing target.",
+        "stephenjude/filament-blog": "Enables the POST2SITE_PRESET=stephenjude_filament_blog configurable publishing target."
+    },
     "autoload": {
         "psr-4": {
             "N2ns\\LaravelPost2Site\\": "src/"
@@ -28,7 +33,9 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "N2ns\\LaravelPost2Site\\Tests\\": "tests/"
+            "N2ns\\LaravelPost2Site\\Tests\\": "tests/",
+            "App\\": "tests/Fixtures/SaasKitApp/",
+            "Canvas\\Models\\": "tests/Fixtures/Canvas/Models/"
         }
     },
     "scripts": {

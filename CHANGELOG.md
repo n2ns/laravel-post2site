@@ -2,6 +2,18 @@
 
 All notable changes to Laravel Post2Site are documented in this file. The format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [Unreleased]
+
+## [0.2.0] - 2026-06-24
+
+### Added
+
+- Add `POST2SITE_PRESET` support for known host/blog package integrations.
+- Add first-party `laravel_saas_kit` adapter for SaaS Kit blog posts, translations, product scope validation, product scope context, and public URLs.
+- Add `austintoddj_canvas` adapter preset for Canvas posts and Canvas users.
+- Add configurable presets for `bjuppa/laravel-blog` and `stephenjude/filament-blog`.
+- Document the current blog target list.
+
 ## [0.1.1] - 2026-06-23
 
 ### Changed

@@ -16,6 +16,7 @@ class LaravelPost2SiteServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->replaceConfigRecursivelyFrom(__DIR__.'/../config/post2site.php', 'post2site');
+        $this->applyPresetConfig();
 
         $this->app->bind(PostRepository::class, config('post2site.bindings.repository'));
         $this->app->bind(PublicationTarget::class, config('post2site.bindings.publication_target'));
@@ -55,5 +56,20 @@ class LaravelPost2SiteServiceProvider extends ServiceProvider
                 CreateApiKeyCommand::class,
             ]);
         }
+    }
+
+    private function applyPresetConfig(): void
+    {
+        $preset = config('post2site.preset');
+        if (! is_string($preset) || $preset === '') {
+            return;
+        }
+
+        $config = config("post2site.presets.{$preset}");
+        if (! is_array($config)) {
+            return;
+        }
+
+        config(['post2site' => array_replace_recursive(config('post2site', []), $config)]);
     }
 }

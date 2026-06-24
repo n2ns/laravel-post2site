@@ -13,8 +13,8 @@ class PublicUrlResolutionTest extends TestCase
     public function test_pattern_substitutes_placeholders_into_absolute_url(): void
     {
         $this->assertSame(
-            'https://example.com/en/evisa/guides/apply-online',
-            PublicUrlPattern::build('/{locale}/{key}/guides/{slug}', 'en', 'apply-online', 'product:evisa'),
+            'https://example.com/en/example-app/guides/apply-online',
+            PublicUrlPattern::build('/{locale}/{key}/guides/{slug}', 'en', 'apply-online', 'product:example-app'),
         );
     }
 

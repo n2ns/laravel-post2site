@@ -77,7 +77,7 @@ class Post2SiteApiTest extends TestCase
         $created = $this->api()
             ->postJson('/api/v1/mcp/posts', [
                 'type' => 'guide',
-                'content_scope' => 'product:evisa-helper',
+                'content_scope' => 'product:example-app',
                 'slug' => 'apply-online',
                 'locale' => 'en',
                 'title' => 'Apply Online',
@@ -91,7 +91,7 @@ class Post2SiteApiTest extends TestCase
             ->postJson("/api/v1/mcp/posts/{$created['id']}/publish")
             ->assertOk()
             ->assertJsonPath('blog_post.status', 'published')
-            ->assertJsonPath('blog_post.link', 'https://example.com/en/evisa-helper/guides/apply-online')
+            ->assertJsonPath('blog_post.link', 'https://example.com/en/example-app/guides/apply-online')
             ->assertJsonPath('meta.indexnow_queued', true);
 
         $article = TestArticle::query()->firstOrFail();

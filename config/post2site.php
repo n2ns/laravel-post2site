@@ -1,6 +1,12 @@
 <?php
 
 use N2ns\LaravelPost2Site\Indexing\CompositeIndexingNotifier;
+use N2ns\LaravelPost2Site\Integrations\Canvas\CanvasPublicationTarget;
+use N2ns\LaravelPost2Site\Integrations\Canvas\CanvasPublicUrlResolver;
+use N2ns\LaravelPost2Site\Integrations\SaasKit\SaasKitContentScopeValidator;
+use N2ns\LaravelPost2Site\Integrations\SaasKit\SaasKitPublicationTarget;
+use N2ns\LaravelPost2Site\Integrations\SaasKit\SaasKitPublicUrlResolver;
+use N2ns\LaravelPost2Site\Integrations\SaasKit\SaasKitScopeContextProvider;
 use N2ns\LaravelPost2Site\Models\Post2SiteApiKey;
 use N2ns\LaravelPost2Site\Repositories\ConfigScopeContextProvider;
 use N2ns\LaravelPost2Site\Repositories\ConfigurablePublicationTarget;
@@ -9,7 +15,8 @@ use N2ns\LaravelPost2Site\Support\ConfiguredPublicUrlResolver;
 use N2ns\LaravelPost2Site\Support\NullContentScopeValidator;
 
 return [
-    'version' => '0.1.1',
+    'version' => '0.2.0',
+    'preset' => env('POST2SITE_PRESET'),
     'route_prefix' => env('POST2SITE_ROUTE_PREFIX', 'api/v1/mcp'),
 
     'route_middleware' => ['api'],
@@ -91,6 +98,107 @@ return [
         'indexing_notifier' => CompositeIndexingNotifier::class,
         'public_url_resolver' => ConfiguredPublicUrlResolver::class,
         'content_scope_validator' => NullContentScopeValidator::class,
+    ],
+
+    'presets' => [
+        'laravel_saas_kit' => [
+            'content' => [
+                'scoped_types' => ['guide'],
+            ],
+            'content_scope' => [
+                'kinds' => ['product'],
+                'examples' => ['product:starter'],
+            ],
+            'publishing' => [
+                'mode' => 'adapter',
+            ],
+            'bindings' => [
+                'publication_target' => SaasKitPublicationTarget::class,
+                'scope_context_provider' => SaasKitScopeContextProvider::class,
+                'public_url_resolver' => SaasKitPublicUrlResolver::class,
+                'content_scope_validator' => SaasKitContentScopeValidator::class,
+            ],
+        ],
+        'bjuppa_laravel_blog' => [
+            'publishing' => [
+                'mode' => 'configurable',
+                'target' => [
+                    'model' => 'Bjuppa\\LaravelBlog\\Eloquent\\BlogEntry',
+                    'lookup' => ['slug' => 'slug'],
+                    'fields' => [
+                        'slug' => 'slug',
+                        'title' => 'title',
+                        'excerpt' => 'summary',
+                        'content' => 'content',
+                        'thumbnail' => 'image',
+                        'published_at' => ['column' => 'publish_after', 'value' => 'now'],
+                    ],
+                    'translations' => [
+                        'driver' => null,
+                        'fields' => [],
+                    ],
+                    'url' => [
+                        'pattern' => '/blog/{slug}',
+                    ],
+                ],
+            ],
+        ],
+        'stephenjude_filament_blog' => [
+            'publishing' => [
+                'mode' => 'configurable',
+                'target' => [
+                    'model' => 'Stephenjude\\FilamentBlog\\Models\\Post',
+                    'lookup' => ['slug' => 'slug'],
+                    'fields' => [
+                        'slug' => 'slug',
+                        'title' => 'title',
+                        'excerpt' => 'excerpt',
+                        'content' => 'content',
+                        'thumbnail' => 'banner',
+                        'published_at' => ['column' => 'published_at', 'value' => 'now'],
+                    ],
+                    'translations' => [
+                        'driver' => null,
+                        'fields' => [],
+                    ],
+                    'url' => [
+                        'pattern' => '/blog/{slug}',
+                    ],
+                ],
+            ],
+        ],
+        'austintoddj_canvas' => [
+            'content' => [
+                'scoped_types' => [],
+            ],
+            'publishing' => [
+                'mode' => 'adapter',
+            ],
+            'bindings' => [
+                'publication_target' => CanvasPublicationTarget::class,
+                'public_url_resolver' => CanvasPublicUrlResolver::class,
+            ],
+        ],
+    ],
+
+    'integrations' => [
+        'saas_kit' => [
+            'blog_post_model' => 'App\\Models\\BlogPost',
+            'blog_post_translation_model' => 'App\\Models\\BlogPostTranslation',
+            'product_model' => 'App\\Models\\Product',
+            'user_model' => 'App\\Models\\User',
+            'author_id' => env('POST2SITE_SAAS_KIT_AUTHOR_ID'),
+            'author_email' => env('POST2SITE_SAAS_KIT_AUTHOR_EMAIL'),
+            'default_locale' => env('POST2SITE_SAAS_KIT_DEFAULT_LOCALE', env('APP_LOCALE', 'en')),
+            'default_type' => 'technical',
+        ],
+        'canvas' => [
+            'post_model' => 'Canvas\\Models\\Post',
+            'user_model' => 'Canvas\\Models\\User',
+            'author_id' => env('POST2SITE_CANVAS_USER_ID'),
+            'author_email' => env('POST2SITE_CANVAS_USER_EMAIL'),
+            'public_url_pattern' => env('POST2SITE_CANVAS_PUBLIC_URL_PATTERN', '/blog/{slug}'),
+        ],
     ],
 
     'seo' => [

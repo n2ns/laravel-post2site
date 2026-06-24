@@ -37,7 +37,72 @@ POST2SITE_RATE_LIMIT=60,1
 
 The `?q=` search uses a `FULLTEXT(title, content)` index on `post2site_post_translations` (boolean mode) on MySQL/MariaDB; the migration creates the index on those drivers, and other drivers (e.g. SQLite) fall back to `LIKE`. Note MySQL's minimum token length (InnoDB `innodb_ft_min_token_size`, default 3) — very short terms may not match.
 
-## 2. Configurable publishing
+## 2. Presets for known site/blog packages
+
+Use a preset when your host matches a known target. Presets only fill ordinary config values; you can still publish and override `config/post2site.php`.
+
+### SaaS Kit
+
+For a site installed from `n2ns/laravel-saas-kit`:
+
+```env
+POST2SITE_PRESET=laravel_saas_kit
+POST2SITE_SAAS_KIT_AUTHOR_ID=1
+POST2SITE_PUBLISHING_MODE=adapter
+```
+
+The preset:
+
+- writes published posts into `App\Models\BlogPost`
+- writes locale content into `App\Models\BlogPostTranslation`
+- validates `product:{code}` against active `App\Models\Product` records
+- publishes unscoped posts at `/blog/{slug}`
+- publishes product guides at `/{productCode}/guides/{slug}`
+
+If `POST2SITE_SAAS_KIT_AUTHOR_ID` is omitted, the adapter uses `POST2SITE_SAAS_KIT_AUTHOR_EMAIL`, then the first `App\Models\User`. Publishing fails clearly if no author exists.
+
+### bjuppa/laravel-blog
+
+For `bjuppa/laravel-blog`:
+
+```env
+POST2SITE_PRESET=bjuppa_laravel_blog
+POST2SITE_PUBLISHING_MODE=configurable
+```
+
+This maps `slug`, `title`, `summary`, `content`, `image`, and `publish_after` into `Bjuppa\LaravelBlog\Eloquent\BlogEntry`. It is a good Laravel 12 target because the package currently supports Illuminate 12.
+
+### austintoddj/canvas
+
+For `austintoddj/canvas`:
+
+```env
+POST2SITE_PRESET=austintoddj_canvas
+POST2SITE_PUBLISHING_MODE=adapter
+POST2SITE_CANVAS_USER_ID=uuid-of-canvas-user
+POST2SITE_CANVAS_PUBLIC_URL_PATTERN=/blog/{slug}
+```
+
+The preset:
+
+- writes published posts into `Canvas\Models\Post`
+- requires a Canvas author from `POST2SITE_CANVAS_USER_ID`, `POST2SITE_CANVAS_USER_EMAIL`, or the first `Canvas\Models\User`
+- publishes links through `POST2SITE_CANVAS_PUBLIC_URL_PATTERN`
+
+Canvas does not define one required frontend URL for posts. Set `POST2SITE_CANVAS_PUBLIC_URL_PATTERN` to the route your site actually renders.
+
+### stephenjude/filament-blog
+
+For `stephenjude/filament-blog` 5.x:
+
+```env
+POST2SITE_PRESET=stephenjude_filament_blog
+POST2SITE_PUBLISHING_MODE=configurable
+```
+
+This maps the common post fields into `Stephenjude\FilamentBlog\Models\Post`. Check your installed package schema before enabling automatic publishing: some installations may require a default author/category, which should be handled by a small host adapter instead of forcing those assumptions into Post2Site.
+
+## 3. Configurable publishing
 
 If your article table is a regular Eloquent model, you can publish with configuration only — no PHP class. This example assumes `App\Models\Article` using Spatie Translatable.
 
@@ -80,9 +145,9 @@ In this mode:
 
 > The package makes no assumptions about URL shape (default `/{slug}`). `configurable` mode supports a single pattern; if different categories need different URLs (e.g. `product:` guides at `/{locale}/{key}/guides/{slug}` and others at `/{locale}/{slug}`), use `adapter` mode with a custom `PublicationTarget`, or bind a custom `PublicUrlResolver`.
 
-## 3. Content scope and URLs
+## 4. Content scope and URLs
 
-`content_scope` is an optional `kind:key` classification tag (e.g. `product:evisa-helper`). The package makes no assumptions about its values; configure as needed:
+`content_scope` is an optional `kind:key` classification tag (e.g. `product:example-app`). The package makes no assumptions about its values; configure as needed:
 
 - **Kind whitelist (optional)** — any `kind:key` is accepted by default. To restrict, set:
   ```env
@@ -109,7 +174,7 @@ In this mode:
 - **Which types require a scope** — set `content.scoped_types` (default `['guide']`). Those types require a `content_scope`; all others prohibit it.
 - **Public URL** — `POST2SITE_PUBLIC_URL_PATTERN` (default `/{slug}`; placeholders `{slug} {locale} {content_scope} {key}`). For per-category URLs, bind a custom `PublicUrlResolver`; the package ships no blog/product defaults.
 
-## 4. Custom publication adapter
+## 5. Custom publication adapter
 
 Write code only when field mapping is not enough — for example relation tables, complex taxonomy, author models, legacy slugs, or an external CMS.
 
@@ -147,7 +212,7 @@ Then configure:
 ],
 ```
 
-## 5. SEO/GEO and indexing
+## 6. SEO/GEO and indexing
 
 The host renders public pages, so final SEO/GEO output also belongs on the host. The `PublishedPostData.link` returned by `PublicationTarget` is written back to the staging post and is the single URL source for the indexing pipeline; drafts and future-dated posts return `null`, and a staging post without a public URL is never submitted.
 
@@ -209,14 +274,14 @@ php artisan queue:work --queue="${POST2SITE_INDEXING_QUEUE:-default}"
 
 Google has no generic URL submission endpoint for ordinary articles. This package defaults `google_auto_submit=false`; rely on your sitemap and Google Search Console.
 
-## 6. Draft tools
+## 7. Draft tools
 
 The host does not implement `list_drafts` or `update_draft` routes:
 
 - `n2n_list_drafts` calls `/posts?status=draft`, served by the staging repository.
 - `n2n_update_draft` calls `/posts/{id_or_slug}` first, confirms `status=draft`, then calls `PATCH /posts/{id_or_slug}`. This only changes the staging tables.
 
-## 7. Post-integration smoke test
+## 8. Post-integration smoke test
 
 ```bash
 curl -H "X-API-KEY: $POST2SITE_API_KEY" https://example.com/api/v1/mcp/capabilities
