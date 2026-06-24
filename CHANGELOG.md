@@ -4,6 +4,12 @@ All notable changes to Laravel Post2Site are documented in this file. The format
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-06-24
+
+### Fixed
+
+- Load full SaaS Kit product models when exposing available `product:{code}` scopes so host model accessors can read their required attributes.
+
 ## [0.2.0] - 2026-06-24
 
 ### Added

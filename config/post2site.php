@@ -15,7 +15,7 @@ use N2ns\LaravelPost2Site\Support\ConfiguredPublicUrlResolver;
 use N2ns\LaravelPost2Site\Support\NullContentScopeValidator;
 
 return [
-    'version' => '0.2.0',
+    'version' => '0.2.1',
     'preset' => env('POST2SITE_PRESET'),
     'route_prefix' => env('POST2SITE_ROUTE_PREFIX', 'api/v1/mcp'),
 

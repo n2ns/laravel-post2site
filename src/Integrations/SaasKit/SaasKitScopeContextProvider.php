@@ -18,7 +18,7 @@ class SaasKitScopeContextProvider implements ScopeContextProvider
         $query = $this->activeProductsQuery($productClass);
 
         return $query->orderBy('code')
-            ->get(['code'])
+            ->get()
             ->map(fn (Model $product): array => $this->contextFromProduct($product))
             ->values()
             ->all();
