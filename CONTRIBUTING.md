@@ -26,7 +26,7 @@ composer test
 
 ## Design principles
 
-This package is a generic backend for the Content Publishing API Contract. Keep host-specific assumptions out of the package: model categories, URL shapes, and entity validation belong behind the bindable contracts (`PublicUrlResolver`, `ContentScopeValidator`, `ScopeContextProvider`, `PublicationTarget`, `PostRepository`), not in the core. See [docs/architecture.md](docs/architecture.md).
+This package is a generic backend for the `post2site-publishing` MCP contract. Keep host-specific assumptions out of the package: model categories, URL shapes, taxonomy, locale rules, evidence requirements, and publish mappings belong behind the bindable `Post2SiteAdapter`, not in the core. Core code should only own workflow, staging, idempotency, validation envelopes, and adapter DTOs. See [docs/architecture.md](docs/architecture.md).
 
 ## Changelog
 

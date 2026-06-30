@@ -18,17 +18,27 @@ class AuthenticatePost2SiteKey
             return response()->json(['message' => 'Unauthorized.'], 401);
         }
 
-        if (! $this->validKey($plain)) {
+        $client = $this->clientForKey($plain);
+
+        if ($client === null) {
             return response()->json(['message' => 'Unauthorized.'], 401);
         }
+
+        $request->attributes->set('post2site_client_key_id', $client['id']);
+        $request->attributes->set('post2site_client_name', $client['name']);
 
         return $next($request);
     }
 
-    private function validKey(string $plain): bool
+    /**
+     * @return array{id: string, name: string}|null
+     */
+    private function clientForKey(string $plain): ?array
     {
         if (config('post2site.auth.driver') === 'static') {
-            return hash_equals((string) config('post2site.auth.static_key'), $plain);
+            return hash_equals((string) config('post2site.auth.static_key'), $plain)
+                ? ['id' => 'static', 'name' => 'static']
+                : null;
         }
 
         $model = config('post2site.auth.model', Post2SiteApiKey::class);
@@ -39,11 +49,11 @@ class AuthenticatePost2SiteKey
             ->first();
 
         if ($key === null) {
-            return false;
+            return null;
         }
 
         if ($key->expires_at !== null && $key->expires_at->isPast()) {
-            return false;
+            return null;
         }
 
         // Avoid a write on every request: only refresh last_used_at periodically.
@@ -51,6 +61,6 @@ class AuthenticatePost2SiteKey
             $key->forceFill(['last_used_at' => now()])->save();
         }
 
-        return true;
+        return ['id' => (string) $key->getKey(), 'name' => (string) $key->name];
     }
 }

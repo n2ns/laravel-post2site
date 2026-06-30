@@ -4,25 +4,32 @@ All notable changes to Laravel Post2Site are documented in this file. The format
 
 ## [Unreleased]
 
-### Added
+### Changed
 
-- Add GitHub Sponsors metadata for repository and Composer package discovery.
+- Redesign the package around the generic `post2site-publishing` MCP contract.
+- Replace the old post CRUD API with draft, asset, validation, preview, inventory, duplicate-check, and publish endpoints.
+- Replace host-specific publishing presets with a single `Post2SiteAdapter` contract.
+- Move host content fields into opaque `content_payload` JSON owned by the host adapter.
+- Add package-owned staging tables for drafts, selected assets, and idempotency records.
+- Require explicit publish confirmation, optimistic version checks, and `Idempotency-Key` for publish.
+
+### Removed
+
+- Remove the old `/posts` CRUD API.
+- Remove legacy post repository/public URL/publication target abstractions.
+- Remove compatibility presets from core package positioning.
 
 ## [0.2.1] - 2026-06-24
 
 ### Fixed
 
-- Load full SaaS Kit product models when exposing available `product:{code}` scopes so host model accessors can read their required attributes.
+- Last release before the MCP contract redesign.
 
 ## [0.2.0] - 2026-06-24
 
 ### Added
 
-- Add `POST2SITE_PRESET` support for known host/blog package integrations.
-- Add first-party `laravel_saas_kit` adapter for SaaS Kit blog posts, translations, product scope validation, product scope context, and public URLs.
-- Add `austintoddj_canvas` adapter preset for Canvas posts and Canvas users.
-- Add configurable presets for `bjuppa/laravel-blog` and `stephenjude/filament-blog`.
-- Document the current blog target list.
+- Last release with preset-based blog publishing support.
 
 ## [0.1.1] - 2026-06-23
 
@@ -36,12 +43,3 @@ All notable changes to Laravel Post2Site are documented in this file. The format
 ### Added
 
 - Initial release of the Laravel backend for the N2N Post2Site Content Publishing API Contract.
-- Protected publishing routes (`capabilities`, `posts` CRUD, `publish`, `scopes`) behind API-key auth and per-route rate limiting.
-- API-key auth with `static` and `database` drivers; database keys stored as SHA-256 hashes with a unique-index O(1) lookup. `post2site:key` console command.
-- Package-owned staging tables for posts, translations, API keys, and indexing submissions.
-- Three publishing modes: `review`, `configurable` (host model field mapping), and `adapter` (custom `PublicationTarget`).
-- Generic `content_scope` (`kind:key`): contract-level format check, optional `content_scope.kinds` whitelist, host-bound `ContentScopeValidator` for key resolution, and config-driven `content.scoped_types`.
-- Host-bindable contracts: `PostRepository`, `PublicationTarget`, `PublicUrlResolver`, `ContentScopeValidator`, `ScopeContextProvider`, `IndexingNotifier`.
-- Generic public URL generation via `public_url.pattern` (no baked-in categories).
-- Optional IndexNow submission via a queued, unique, after-commit job; `Post2SitePostPublished` event for host sitemap/cache hooks.
-- `?q=` search using a MySQL/MariaDB `FULLTEXT` index with a `LIKE` fallback on other drivers.
