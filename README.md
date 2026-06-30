@@ -7,7 +7,7 @@
 
 Laravel backend package for a generic Post2Site MCP publishing contract.
 
-The package owns the HTTP workflow, staging drafts, selected assets, validation envelopes, optimistic concurrency, and publish idempotency. Host applications own the content model through a `Post2SiteAdapter`; package DTOs do not define blog fields, categories, topics, locales, URL patterns, authors, or ownership markers.
+The package handles the HTTP workflow, staging drafts, selected assets, validation envelopes, and publish confirmation. Host applications provide the content model through a `Post2SiteAdapter`; package DTOs do not define blog fields, categories, topics, locales, URL patterns, authors, or host markers.
 
 ## Requirements
 
@@ -89,12 +89,9 @@ The adapter provides capabilities, site context, editorial policy, inventory, du
 Publish requires:
 
 - authenticated API key
-- `user_confirmed_publish = true`
-- `expected_version`
-- optional `If-Match`
-- `Idempotency-Key`
+- `publish_confirmed = true`
 
-The package reserves the idempotency key, locks the draft, validates, calls the host adapter publish method, updates the draft, and stores the cached publish result in one database transaction.
+The package validates, calls the host adapter publish method, and stores the draft publish result.
 
 ## Testing
 

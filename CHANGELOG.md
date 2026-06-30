@@ -2,16 +2,16 @@
 
 All notable changes to Laravel Post2Site are documented in this file. The format follows [Keep a Changelog](https://keepachangelog.com/).
 
-## [Unreleased]
+## [0.3.0] - 2026-07-01
 
 ### Changed
 
 - Redesign the package around the generic `post2site-publishing` MCP contract.
 - Replace the old post CRUD API with draft, asset, validation, preview, inventory, duplicate-check, and publish endpoints.
 - Replace host-specific publishing presets with a single `Post2SiteAdapter` contract.
-- Move host content fields into opaque `content_payload` JSON owned by the host adapter.
-- Add package-owned staging tables for drafts, selected assets, and idempotency records.
-- Require explicit publish confirmation, optimistic version checks, and `Idempotency-Key` for publish.
+- Move host content fields into opaque `content_payload` JSON handled by the host adapter.
+- Add package-managed staging tables for drafts and selected assets.
+- Require explicit publish confirmation for publish.
 
 ### Removed
 

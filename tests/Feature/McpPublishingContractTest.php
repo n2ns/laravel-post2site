@@ -95,7 +95,7 @@ class McpPublishingContractTest extends TestCase
             ->assertJsonPath('error.code', 'validation_failed');
     }
 
-    public function test_forbidden_ownership_fields_are_not_accepted_in_payload(): void
+    public function test_reserved_lifecycle_fields_are_not_accepted_in_payload(): void
     {
         $this->api()
             ->postJson('/api/v1/mcp/drafts', [
@@ -109,18 +109,15 @@ class McpPublishingContractTest extends TestCase
             ->assertJsonValidationErrors('content_payload.content_origin');
     }
 
-    public function test_publish_requires_user_confirmation(): void
+    public function test_publish_requires_confirmation(): void
     {
         $draft = $this->createDraft();
 
         $this->api()
-            ->withHeader('Idempotency-Key', 'confirm-required')
-            ->withHeader('If-Match', '"draft-version-1"')
             ->postJson("/api/v1/mcp/drafts/{$draft['draft_id']}/publish", [
-                'expected_version' => 1,
             ])
             ->assertUnprocessable()
-            ->assertJsonValidationErrors('user_confirmed_publish');
+            ->assertJsonValidationErrors('publish_confirmed');
     }
 
     public function test_preview_delegates_to_host_adapter(): void
@@ -136,91 +133,55 @@ class McpPublishingContractTest extends TestCase
             ->assertJsonPath('expires_at', '2026-07-01T12:00:00.000000Z');
     }
 
-    public function test_publish_rejects_stale_if_match_even_when_expected_version_matches(): void
+    public function test_draft_can_be_updated_without_version_headers(): void
     {
         $draft = $this->createDraft();
 
         $this->api()
-            ->withHeader('Idempotency-Key', 'stale-header')
-            ->withHeader('If-Match', '"draft-version-2"')
+            ->patchJson("/api/v1/mcp/drafts/{$draft['draft_id']}", [
+                'content_payload' => ['body' => 'Updated'],
+            ])
+            ->assertOk()
+            ->assertJsonPath('version', 2)
+            ->assertJsonPath('content_payload.body', 'Updated');
+    }
+
+    public function test_publish_only_requires_confirmation(): void
+    {
+        $draft = $this->createDraft();
+
+        $this->api()
             ->postJson("/api/v1/mcp/drafts/{$draft['draft_id']}/publish", [
-                'user_confirmed_publish' => true,
-                'expected_version' => 1,
+                'publish_confirmed' => true,
                 'acknowledged_warnings' => [],
             ])
-            ->assertStatus(409)
-            ->assertJsonPath('error.code', 'stale_version');
-    }
-
-    public function test_publish_idempotency_caches_same_payload_and_rejects_conflicts(): void
-    {
-        $draft = $this->createDraft();
-        $payload = [
-            'user_confirmed_publish' => true,
-            'expected_version' => 1,
-            'acknowledged_warnings' => [],
-        ];
-
-        $first = $this->api()
-            ->withHeader('Idempotency-Key', 'publish-once')
-            ->withHeader('If-Match', '"draft-version-1"')
-            ->postJson("/api/v1/mcp/drafts/{$draft['draft_id']}/publish", $payload)
             ->assertOk()
-            ->assertJsonPath('status', 'published')
-            ->json();
+            ->assertJsonPath('status', 'published');
 
         $this->assertSame(1, GenericMcpAdapter::$publishCount);
-
-        $this->api()
-            ->withHeader('Idempotency-Key', 'publish-once')
-            ->withHeader('If-Match', '"draft-version-1"')
-            ->postJson("/api/v1/mcp/drafts/{$draft['draft_id']}/publish", $payload)
-            ->assertOk()
-            ->assertExactJson($first);
-
-        $this->assertSame(1, GenericMcpAdapter::$publishCount);
-
-        $this->api()
-            ->withHeader('Idempotency-Key', 'publish-once')
-            ->withHeader('If-Match', '"draft-version-1"')
-            ->postJson("/api/v1/mcp/drafts/{$draft['draft_id']}/publish", [
-                'user_confirmed_publish' => true,
-                'expected_version' => 1,
-                'acknowledged_warnings' => ['changed'],
-            ])
-            ->assertStatus(412)
-            ->assertJsonPath('error.code', 'idempotency_conflict');
     }
 
-    public function test_published_draft_cannot_be_updated_or_republished_with_new_key(): void
+    public function test_published_draft_cannot_be_updated_or_republished(): void
     {
         $draft = $this->createDraft();
 
         $this->api()
-            ->withHeader('Idempotency-Key', 'publish-before-update')
-            ->withHeader('If-Match', '"draft-version-1"')
             ->postJson("/api/v1/mcp/drafts/{$draft['draft_id']}/publish", [
-                'user_confirmed_publish' => true,
-                'expected_version' => 1,
+                'publish_confirmed' => true,
                 'acknowledged_warnings' => [],
             ])
             ->assertOk();
 
         $this->api()
-            ->withHeader('If-Match', '"draft-version-1"')
             ->patchJson("/api/v1/mcp/drafts/{$draft['draft_id']}", [
                 'content_payload' => ['body' => 'Changed after publish'],
-                'expected_version' => 1,
             ])
             ->assertStatus(409)
             ->assertJsonPath('error.code', 'invalid_transition');
 
         $this->api()
-            ->withHeader('Idempotency-Key', 'publish-again')
-            ->withHeader('If-Match', '"draft-version-1"')
             ->postJson("/api/v1/mcp/drafts/{$draft['draft_id']}/publish", [
-                'user_confirmed_publish' => true,
-                'expected_version' => 1,
+                'publish_confirmed' => true,
                 'acknowledged_warnings' => [],
             ])
             ->assertStatus(409)

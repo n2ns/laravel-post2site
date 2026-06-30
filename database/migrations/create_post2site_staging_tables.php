@@ -42,27 +42,10 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        Schema::create('post2site_idempotency_records', function (Blueprint $table): void {
-            $table->id();
-            $table->string('client_key_id');
-            $table->string('route');
-            $table->string('resource_id');
-            $table->string('idempotency_key');
-            $table->string('payload_hash');
-            $table->string('status')->index();
-            $table->json('response')->nullable();
-            $table->timestamps();
-
-            $table->unique(
-                ['client_key_id', 'route', 'resource_id', 'idempotency_key'],
-                'post2site_idempotency_scope_unique'
-            );
-        });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('post2site_idempotency_records');
         Schema::dropIfExists('post2site_assets');
         Schema::dropIfExists('post2site_drafts');
     }

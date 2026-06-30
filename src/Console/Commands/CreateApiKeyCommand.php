@@ -10,7 +10,6 @@ class CreateApiKeyCommand extends Command
 {
     protected $signature = 'post2site:key
         {name : Human-readable key name}
-        {--user-id= : Optional host user id}
         {--expires-at= : Optional expiration datetime}
         {--plain : Print only the generated plain key}';
 
@@ -23,7 +22,6 @@ class CreateApiKeyCommand extends Command
         Post2SiteApiKey::query()->create([
             'name' => $this->argument('name'),
             'key_hash' => hash('sha256', $plain),
-            'user_id' => $this->option('user-id'),
             'expires_at' => $this->option('expires-at'),
         ]);
 

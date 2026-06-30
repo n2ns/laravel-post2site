@@ -5,7 +5,6 @@ namespace N2ns\LaravelPost2Site\Http\Controllers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -18,7 +17,6 @@ use N2ns\LaravelPost2Site\Data\PublishRequest;
 use N2ns\LaravelPost2Site\Data\ValidationResult;
 use N2ns\LaravelPost2Site\Models\Post2SiteAsset;
 use N2ns\LaravelPost2Site\Models\Post2SiteDraft;
-use N2ns\LaravelPost2Site\Models\Post2SiteIdempotencyRecord;
 
 class McpPublishingController extends Controller
 {
@@ -26,6 +24,8 @@ class McpPublishingController extends Controller
 
     public function capabilities(Request $request): JsonResponse
     {
+        $hostCapabilities = $this->adapter->capabilities();
+
         return response()->json(array_replace_recursive([
             'contract' => 'post2site-publishing',
             'contract_version' => '1.0',
@@ -36,7 +36,6 @@ class McpPublishingController extends Controller
                 'required' => true,
                 'mode' => 'api_key',
                 'header' => config('post2site.auth.header', 'X-API-KEY'),
-                'authorization_header_supported' => false,
                 'client_attribution' => true,
             ],
             'endpoints' => [
@@ -63,7 +62,11 @@ class McpPublishingController extends Controller
                 'shell_access_exposed' => false,
                 'server_operations_exposed' => false,
             ],
-        ], $this->adapter->capabilities()));
+        ], array_intersect_key($hostCapabilities, array_flip([
+            'host_profile',
+            'host_schema',
+            'host_metadata',
+        ]))));
     }
 
     public function siteContext(): JsonResponse
@@ -159,7 +162,7 @@ class McpPublishingController extends Controller
         $data = $this->validateDraftPayload($request, creating: true);
         $client = $this->clientContext($request);
         $assetRefs = $this->adapter->extractAssetRefs($data['content_payload']);
-        $assetBlockers = $this->assetRefBlockers($assetRefs, $client->clientKeyId);
+        $assetBlockers = $this->assetRefBlockers($assetRefs);
 
         if ($assetBlockers !== []) {
             return $this->validationResult('draft', false, $assetBlockers);
@@ -179,7 +182,7 @@ class McpPublishingController extends Controller
             'client_metadata' => $data['client_metadata'] ?? [],
         ]);
 
-        $this->bindAssetsToDraft($assetRefs, $client->clientKeyId, $draft->draft_id);
+        $this->bindAssetsToDraft($assetRefs, $draft->draft_id);
 
         $validation = $this->validateContext($this->draftContext($draft), 'draft');
         $draft->forceFill(['validation_state' => $validation->toArray('draft')])->save();
@@ -207,16 +210,11 @@ class McpPublishingController extends Controller
             return $this->error('invalid_transition', 'Published drafts cannot be updated.', 409);
         }
 
-        if (! $this->versionMatches($request, $draft->version)) {
-            return $this->error('stale_version', 'The draft changed after the client loaded it.', 409, 'expected_version');
-        }
-
         $data = $this->validateDraftPayload($request, creating: false);
-        $client = $this->clientContext($request);
         $nextPayload = $data['content_payload'] ?? $draft->content_payload;
         $this->rejectForbiddenPayloadFields($nextPayload);
         $assetRefs = $this->adapter->extractAssetRefs($nextPayload);
-        $assetBlockers = $this->assetRefBlockers($assetRefs, $client->clientKeyId, $draft->draft_id);
+        $assetBlockers = $this->assetRefBlockers($assetRefs);
 
         if ($assetBlockers !== []) {
             return $this->validationResult('draft', false, $assetBlockers);
@@ -231,7 +229,7 @@ class McpPublishingController extends Controller
             'version' => $draft->version + 1,
         ])->save();
 
-        $this->bindAssetsToDraft($assetRefs, $client->clientKeyId, $draft->draft_id);
+        $this->bindAssetsToDraft($assetRefs, $draft->draft_id);
 
         $validation = $this->validateContext($this->draftContext($draft->refresh()), 'draft');
         $draft->forceFill(['validation_state' => $validation->toArray('draft')])->save();
@@ -342,115 +340,52 @@ class McpPublishingController extends Controller
     public function publishDraft(Request $request, string $draft_id): JsonResponse
     {
         $data = $this->validate($request, [
-            'user_confirmed_publish' => ['required', 'accepted'],
-            'expected_version' => ['required', 'integer', 'min:1'],
+            'publish_confirmed' => ['required', 'accepted'],
             'acknowledged_warnings' => ['nullable', 'array'],
             'acknowledged_warnings.*' => ['string'],
         ]);
 
-        $idempotencyKey = $request->header('Idempotency-Key');
-        if (! is_string($idempotencyKey) || $idempotencyKey === '') {
-            return $this->error('validation_failed', 'The Idempotency-Key header is required.', 422, 'Idempotency-Key');
+        $draft = Post2SiteDraft::query()->find($draft_id);
+        if ($draft === null) {
+            return $this->error('not_found', 'The requested draft was not found.', 404);
         }
 
-        $ifMatch = $request->header('If-Match');
-        $client = $this->clientContext($request);
-        $payloadHash = $this->payloadHash($request, $data, $ifMatch);
-        $route = 'POST /drafts/{draft_id}/publish';
+        if ($draft->status === 'published') {
+            return $this->error('invalid_transition', 'Published drafts cannot be published again.', 409);
+        }
 
-        return DB::transaction(function () use ($client, $route, $draft_id, $idempotencyKey, $payloadHash, $request, $data, $ifMatch): JsonResponse {
-            $record = Post2SiteIdempotencyRecord::query()
-                ->where('client_key_id', $client->clientKeyId)
-                ->where('route', $route)
-                ->where('resource_id', $draft_id)
-                ->where('idempotency_key', $idempotencyKey)
-                ->lockForUpdate()
-                ->first();
+        $assetBlockers = $this->assetRefBlockers($draft->asset_refs ?? []);
+        if ($assetBlockers !== []) {
+            return $this->validationResult('publish', false, $assetBlockers);
+        }
 
-            if ($record !== null) {
-                if (! hash_equals($record->payload_hash, $payloadHash)) {
-                    return $this->error('idempotency_conflict', 'This Idempotency-Key was already used with different request data.', 412, 'Idempotency-Key');
-                }
+        $context = $this->draftContext($draft);
+        $validation = $this->validateContext($context, 'publish');
+        if ($validation->blockers !== []) {
+            $draft->forceFill(['validation_state' => $validation->toArray('publish')])->save();
 
-                if ($record->status === 'success') {
-                    return response()->json($record->response);
-                }
+            return response()->json($validation->toArray('publish'), 422);
+        }
 
-                return $this->error('publish_in_progress', 'A publish request with this Idempotency-Key is already in progress.', 409);
-            }
+        $result = $this->adapter->publishDraft($context, new PublishRequest(
+            publishConfirmed: true,
+            acknowledgedWarnings: $data['acknowledged_warnings'] ?? [],
+        ));
 
-            $record = Post2SiteIdempotencyRecord::query()->create([
-                'client_key_id' => $client->clientKeyId,
-                'route' => $route,
-                'resource_id' => $draft_id,
-                'idempotency_key' => $idempotencyKey,
-                'payload_hash' => $payloadHash,
-                'status' => 'in_progress',
-            ]);
+        $response = $result->toArray();
+        $draft->forceFill([
+            'status' => 'published',
+            'published_at' => now(),
+            'publish_confirmation_state' => [
+                'publish_confirmed' => true,
+                'acknowledged_warnings' => $data['acknowledged_warnings'] ?? [],
+                'confirmed_at' => now()->toJSON(),
+            ],
+            'publish_result' => $response,
+            'validation_state' => $validation->toArray('publish'),
+        ])->save();
 
-            $draft = Post2SiteDraft::query()->whereKey($draft_id)->lockForUpdate()->first();
-            if ($draft === null) {
-                $record->delete();
-
-                return $this->error('not_found', 'The requested draft was not found.', 404);
-            }
-
-            if ($draft->status === 'published') {
-                $record->delete();
-
-                return $this->error('invalid_transition', 'Published drafts cannot be published again.', 409);
-            }
-
-            if (! $this->versionMatches($request, $draft->version)) {
-                $record->delete();
-
-                return $this->error('stale_version', 'The draft changed after the client loaded it.', 409, 'expected_version');
-            }
-
-            $assetBlockers = $this->assetRefBlockers($draft->asset_refs ?? [], $draft->client_key_id, $draft->draft_id);
-            if ($assetBlockers !== []) {
-                $record->delete();
-
-                return $this->validationResult('publish', false, $assetBlockers);
-            }
-
-            $context = $this->draftContext($draft);
-            $validation = $this->validateContext($context, 'publish');
-            if ($validation->blockers !== []) {
-                $record->delete();
-                $draft->forceFill(['validation_state' => $validation->toArray('publish')])->save();
-
-                return response()->json($validation->toArray('publish'), 422);
-            }
-
-            $result = $this->adapter->publishDraft($context, new PublishRequest(
-                userConfirmedPublish: true,
-                expectedVersion: (int) $data['expected_version'],
-                acknowledgedWarnings: $data['acknowledged_warnings'] ?? [],
-                idempotencyKey: $idempotencyKey,
-                ifMatch: $ifMatch,
-            ));
-
-            $response = $result->toArray();
-            $draft->forceFill([
-                'status' => 'published',
-                'published_at' => now(),
-                'publish_confirmation_state' => [
-                    'user_confirmed_publish' => true,
-                    'acknowledged_warnings' => $data['acknowledged_warnings'] ?? [],
-                    'confirmed_at' => now()->toJSON(),
-                ],
-                'publish_result' => $response,
-                'validation_state' => $validation->toArray('publish'),
-            ])->save();
-
-            $record->forceFill([
-                'status' => 'success',
-                'response' => $response,
-            ])->save();
-
-            return response()->json($response);
-        });
+        return response()->json($response);
     }
 
     private function validateDraftPayload(Request $request, bool $creating): array
@@ -481,7 +416,7 @@ class McpPublishingController extends Controller
         foreach (config('post2site.drafts.forbidden_payload_fields', []) as $field) {
             if (array_key_exists($field, $contentPayload)) {
                 throw ValidationException::withMessages([
-                    "content_payload.{$field}" => 'This field is owned by the host application and is not accepted by the MCP contract.',
+                    "content_payload.{$field}" => 'This field is reserved for the host adapter and is not accepted by the MCP contract.',
                 ]);
             }
         }
@@ -532,7 +467,7 @@ class McpPublishingController extends Controller
 
     private function validateContext(DraftContext $context, string $mode)
     {
-        $assetBlockers = $this->assetRefBlockers($context->assetRefs, $context->clientKeyId, $context->draftId);
+        $assetBlockers = $this->assetRefBlockers($context->assetRefs);
         $host = $this->adapter->validateContentPayload($context, $context->contentPayload, $mode);
 
         if ($assetBlockers === []) {
@@ -548,7 +483,7 @@ class McpPublishingController extends Controller
         );
     }
 
-    private function assetRefBlockers(array $assetRefs, string $clientKeyId, ?string $draftId = null): array
+    private function assetRefBlockers(array $assetRefs): array
     {
         $blockers = [];
 
@@ -560,88 +495,17 @@ class McpPublishingController extends Controller
                 continue;
             }
 
-            if ($asset->client_key_id !== $clientKeyId) {
-                $blockers[] = $this->issue('asset_forbidden', 'content_payload', 'Referenced asset belongs to a different client.', ['asset_id' => $assetId]);
-
-                continue;
-            }
-
-            if ($asset->draft_id !== null && $asset->draft_id !== $draftId) {
-                $blockers[] = $this->issue('asset_forbidden', 'content_payload', 'Referenced asset belongs to a different draft.', ['asset_id' => $assetId]);
-            }
         }
 
         return $blockers;
     }
 
-    private function bindAssetsToDraft(array $assetRefs, string $clientKeyId, string $draftId): void
+    private function bindAssetsToDraft(array $assetRefs, string $draftId): void
     {
         Post2SiteAsset::query()
             ->whereIn('asset_id', $assetRefs)
-            ->where('client_key_id', $clientKeyId)
             ->whereNull('draft_id')
             ->update(['draft_id' => $draftId]);
-    }
-
-    private function expectedVersion(Request $request): ?int
-    {
-        if ($request->filled('expected_version')) {
-            return (int) $request->input('expected_version');
-        }
-
-        return $this->ifMatchVersion($request);
-    }
-
-    private function versionMatches(Request $request, int $version): bool
-    {
-        $expected = $request->filled('expected_version') ? (int) $request->input('expected_version') : null;
-        $ifMatch = $this->ifMatchVersion($request);
-
-        if ($expected !== null && $expected !== $version) {
-            return false;
-        }
-
-        if ($ifMatch !== null && $ifMatch !== $version) {
-            return false;
-        }
-
-        return $expected !== null || $ifMatch !== null;
-    }
-
-    private function ifMatchVersion(Request $request): ?int
-    {
-        $ifMatch = $request->header('If-Match');
-        if (! is_string($ifMatch) || $ifMatch === '') {
-            return null;
-        }
-
-        if (preg_match('/draft-version-(\d+)/', trim($ifMatch, '"'), $matches) === 1) {
-            return (int) $matches[1];
-        }
-
-        return ctype_digit(trim($ifMatch, '"')) ? (int) trim($ifMatch, '"') : null;
-    }
-
-    private function payloadHash(Request $request, array $body, ?string $ifMatch): string
-    {
-        $payload = [
-            'body' => $body,
-            'if_match' => $ifMatch,
-            'expected_version' => $body['expected_version'] ?? null,
-        ];
-        $this->ksortRecursive($payload);
-
-        return hash('sha256', json_encode($payload, JSON_THROW_ON_ERROR));
-    }
-
-    private function ksortRecursive(array &$value): void
-    {
-        ksort($value);
-        foreach ($value as &$child) {
-            if (is_array($child)) {
-                $this->ksortRecursive($child);
-            }
-        }
     }
 
     private function validationResult(string $mode, bool $publishable, array $blockers): JsonResponse
@@ -675,7 +539,7 @@ class McpPublishingController extends Controller
                 'code' => $code,
                 'message' => $message,
                 'field' => $field,
-                'retryable' => in_array($code, ['publish_in_progress'], true),
+                'retryable' => false,
                 'details' => $details,
             ],
         ], $status);

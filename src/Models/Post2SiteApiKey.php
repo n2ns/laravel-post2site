@@ -11,7 +11,6 @@ class Post2SiteApiKey extends Model
     protected $fillable = [
         'name',
         'key_hash',
-        'user_id',
         'revoked_at',
         'expires_at',
         'last_used_at',

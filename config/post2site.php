@@ -30,7 +30,6 @@ return [
         'supports_preview' => true,
         'supports_assets' => true,
         'supports_publish_confirmation' => true,
-        'supports_optimistic_concurrency' => true,
     ],
 
     'drafts' => [
@@ -39,11 +38,12 @@ return [
         'forbidden_payload_fields' => [
             'status',
             'published_at',
-            'user_id',
             'author',
             'content_origin',
             'managed_by',
             'authoring_source',
+            'source_type',
+            'content_scope',
         ],
     ],
 

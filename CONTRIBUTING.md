@@ -22,12 +22,12 @@ composer test
 
 - Do not commit `.env` files or API keys.
 - Do not commit `vendor/` or other generated output.
-- Explain user-visible behavior changes in the PR description.
+- Explain public behavior changes in the PR description.
 
 ## Design principles
 
-This package is a generic backend for the `post2site-publishing` MCP contract. Keep host-specific assumptions out of the package: model categories, URL shapes, taxonomy, locale rules, evidence requirements, and publish mappings belong behind the bindable `Post2SiteAdapter`, not in the core. Core code should only own workflow, staging, idempotency, validation envelopes, and adapter DTOs. See [docs/architecture.md](docs/architecture.md).
+This package is a generic backend for the `post2site-publishing` MCP contract. Keep host-specific assumptions out of the package: model categories, URL shapes, taxonomy, locale rules, evidence requirements, and publish mappings belong behind the bindable `Post2SiteAdapter`, not in the core. Core code should only handle workflow, staging, validation envelopes, and adapter DTOs. See [docs/architecture.md](docs/architecture.md).
 
 ## Changelog
 
-Record user-visible changes in `CHANGELOG.md` (Keep a Changelog format).
+Record public changes in `CHANGELOG.md` (Keep a Changelog format).

@@ -12,7 +12,6 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('key_hash')->unique();
-            $table->foreignId('user_id')->nullable()->index();
             $table->timestamp('revoked_at')->nullable();
             $table->timestamp('expires_at')->nullable();
             $table->timestamp('last_used_at')->nullable();
