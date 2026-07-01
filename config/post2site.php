@@ -2,10 +2,9 @@
 
 use N2ns\LaravelPost2Site\Indexing\CompositeIndexingNotifier;
 use N2ns\LaravelPost2Site\Models\Post2SiteApiKey;
-use N2ns\LaravelPost2Site\Support\NullPost2SiteAdapter;
 
 return [
-    'version' => '0.3.0',
+    'version' => '0.4.0',
     'route_prefix' => env('POST2SITE_ROUTE_PREFIX', 'api/v1/mcp'),
 
     'route_middleware' => ['api'],
@@ -19,7 +18,7 @@ return [
     ],
 
     'bindings' => [
-        'adapter' => NullPost2SiteAdapter::class,
+        'adapter' => null,
         'indexing_notifier' => CompositeIndexingNotifier::class,
     ],
 

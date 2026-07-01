@@ -1,6 +1,6 @@
 # Laravel Post2Site
 
-[![Version](https://img.shields.io/badge/version-0.3.0-blue.svg)](https://github.com/n2ns/laravel-post2site)
+[![Version](https://img.shields.io/badge/version-0.4.0-blue.svg)](https://github.com/n2ns/laravel-post2site)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](./LICENSE)
 [![PHP Version](https://img.shields.io/badge/PHP-%3E%3D%208.2-8892bf.svg)](https://www.php.net)
 [![Laravel Version Support](https://img.shields.io/badge/Laravel-12%20%7C%2013-red)](https://laravel.com)
@@ -32,6 +32,8 @@ Configure your MCP client with:
 }
 ```
 
+By default, authentication uses API keys stored in `post2site_api_keys`. For local fixtures or controlled environments, `POST2SITE_AUTH_DRIVER=static` can be used with `POST2SITE_API_KEY`.
+
 ## Contract
 
 Default route prefix: `/api/v1/mcp`.
@@ -48,6 +50,8 @@ Inventory:
 - `GET /inventory/resources/{target_identifier}`
 - `GET /inventory/stats`
 - `POST /inventory/duplicates`
+
+`target_identifier` may contain `/`; callers should percent-encode it in the URL path.
 
 Drafts and assets:
 
@@ -84,6 +88,8 @@ Bind `N2ns\LaravelPost2Site\Contracts\Post2SiteAdapter`:
 ],
 ```
 
+There is no default content adapter. The package fails fast until the host binds a concrete `Post2SiteAdapter`.
+
 The adapter provides capabilities, site context, editorial policy, inventory, duplicate checks, content validation, asset extraction, selected-asset storage, preview, and publish.
 
 Publish requires:
@@ -92,6 +98,21 @@ Publish requires:
 - `publish_confirmed = true`
 
 The package validates, calls the host adapter publish method, and stores the draft publish result.
+
+## Stored Package State
+
+The package owns only workflow state:
+
+- `post2site_api_keys`: database-backed API keys.
+- `post2site_drafts`: staged server drafts, validation state, publish state, and host payload snapshots.
+- `post2site_assets`: selected uploaded asset references and optional draft attribution.
+- `post2site_indexing_submissions`: optional indexing submission bookkeeping for host integrations.
+
+Host public content remains behind the `Post2SiteAdapter`.
+
+## Optional Indexing
+
+The package includes an `IndexingNotifier` binding and an IndexNow notifier. IndexNow is disabled unless `POST2SITE_INDEXNOW_ENABLED=true` and `POST2SITE_INDEXNOW_KEY` are configured. The package does not expose a generic URL submission endpoint through the MCP contract.
 
 ## Testing
 

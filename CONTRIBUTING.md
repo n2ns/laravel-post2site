@@ -7,6 +7,7 @@ Thanks for helping improve Laravel Post2Site.
 ```bash
 composer install
 composer test
+composer pint:test
 ```
 
 `composer test` runs PHPUnit (via Orchestra Testbench). `composer pint:test` checks code style.

@@ -80,6 +80,17 @@ class GenericMcpAdapter implements Post2SiteAdapter
             ]]);
         }
 
+        if (($query['target_identifier'] ?? null) === 'guides/example-post') {
+            return new InventoryResult(items: [[
+                'id' => 'resource_guides_example_post',
+                'target_identifier' => 'guides/example-post',
+                'display_label' => 'Nested example post',
+                'urls' => ['canonical' => 'https://example.com/guides/example-post', 'localized' => []],
+                'summary' => [],
+                'host_fields' => [],
+            ]]);
+        }
+
         return new InventoryResult;
     }
 

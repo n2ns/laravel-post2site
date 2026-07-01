@@ -34,6 +34,15 @@ class McpPublishingContractTest extends TestCase
             ->assertNotFound();
     }
 
+    public function test_inventory_resource_target_identifier_may_contain_encoded_slashes(): void
+    {
+        $this->api()
+            ->getJson('/api/v1/mcp/inventory/resources/guides%2Fexample-post')
+            ->assertOk()
+            ->assertJsonPath('item.target_identifier', 'guides/example-post')
+            ->assertJsonPath('item.id', 'resource_guides_example_post');
+    }
+
     public function test_content_payload_is_preserved_and_host_adapter_extracts_asset_refs(): void
     {
         $asset = $this->api()

@@ -3,6 +3,7 @@
 namespace N2ns\LaravelPost2Site;
 
 use Illuminate\Support\ServiceProvider;
+use LogicException;
 use N2ns\LaravelPost2Site\Console\Commands\CreateApiKeyCommand;
 use N2ns\LaravelPost2Site\Contracts\IndexingNotifier;
 use N2ns\LaravelPost2Site\Contracts\Post2SiteAdapter;
@@ -12,9 +13,16 @@ class LaravelPost2SiteServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->replaceConfigRecursivelyFrom(__DIR__.'/../config/post2site.php', 'post2site');
-        $this->applyPresetConfig();
 
-        $this->app->bind(Post2SiteAdapter::class, config('post2site.bindings.adapter'));
+        $this->app->bind(Post2SiteAdapter::class, function (): Post2SiteAdapter {
+            $adapter = config('post2site.bindings.adapter');
+
+            if (! is_string($adapter) || ! is_subclass_of($adapter, Post2SiteAdapter::class)) {
+                throw new LogicException('Configure post2site.bindings.adapter with a host Post2SiteAdapter implementation.');
+            }
+
+            return $this->app->make($adapter);
+        });
         $this->app->bind(IndexingNotifier::class, config('post2site.bindings.indexing_notifier'));
     }
 
@@ -48,20 +56,5 @@ class LaravelPost2SiteServiceProvider extends ServiceProvider
                 CreateApiKeyCommand::class,
             ]);
         }
-    }
-
-    private function applyPresetConfig(): void
-    {
-        $preset = config('post2site.preset');
-        if (! is_string($preset) || $preset === '') {
-            return;
-        }
-
-        $config = config("post2site.presets.{$preset}");
-        if (! is_array($config)) {
-            return;
-        }
-
-        config(['post2site' => array_replace_recursive(config('post2site', []), $config)]);
     }
 }

@@ -2,6 +2,17 @@
 
 All notable changes to Laravel Post2Site are documented in this file. The format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.4.0] - 2026-07-02
+
+### Added
+
+- Add contract coverage for slash-containing inventory resource target identifiers sent as percent-encoded path values.
+- Add fail-fast coverage for missing host `Post2SiteAdapter` configuration.
+
+### Removed
+
+- Remove the null content adapter fallback and stale preset config merge hook.
+
 ## [0.3.0] - 2026-07-01
 
 ### Changed

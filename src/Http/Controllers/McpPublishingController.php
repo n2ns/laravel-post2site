@@ -29,7 +29,7 @@ class McpPublishingController extends Controller
         return response()->json(array_replace_recursive([
             'contract' => 'post2site-publishing',
             'contract_version' => '1.0',
-            'package_version' => config('post2site.version', '0.3.0'),
+            'package_version' => config('post2site.version', '0.4.0'),
             'base_path' => '/'.trim(config('post2site.route_prefix', 'api/v1/mcp'), '/'),
             'workflow' => config('post2site.workflow'),
             'auth' => [
