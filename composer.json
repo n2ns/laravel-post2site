@@ -22,8 +22,8 @@
         "illuminate/hashing": "^12.0 || ^13.0"
     },
     "require-dev": {
-        "orchestra/testbench": "^10.0",
-        "phpunit/phpunit": "^11.5",
+        "orchestra/testbench": "^10.0 || ^11.3",
+        "phpunit/phpunit": "^11.5 || ^12.5 || ^13.4",
         "laravel/pint": "^1.29.3"
     },
     "autoload": {
