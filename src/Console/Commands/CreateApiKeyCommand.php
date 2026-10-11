@@ -33,7 +33,7 @@ class CreateApiKeyCommand extends Command
 
         $this->info('Post2Site API key created. Store this value now; it will not be shown again.');
         $this->line($plain);
-        $this->comment('Configure this value as the MCP client N2N_API_KEY.');
+        $this->comment('Configure this value as the MCP client CONTENT_API_KEY.');
 
         return self::SUCCESS;
     }

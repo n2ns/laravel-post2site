@@ -5,25 +5,39 @@
 [![PHP Version](https://img.shields.io/badge/PHP-%3E%3D%208.2-8892bf.svg)](https://www.php.net)
 [![Laravel Version Support](https://img.shields.io/badge/Laravel-12%20%7C%2013-red)](https://laravel.com)
 
-Laravel backend package for a generic Post2Site MCP publishing contract.
+Let an AI assistant prepare, preview, and publish content into your Laravel application, with an explicit confirmation before publishing.
 
-The package handles the HTTP workflow, staging drafts, selected assets, validation envelopes, and publish confirmation. Host applications provide the content model through a `Post2SiteAdapter`; package DTOs do not define blog fields, categories, topics, locales, URL patterns, authors, or host markers.
+This is the Laravel backend for the [`n2n-post2site` MCP bridge](https://github.com/n2ns/n2n-post2site). The bridge connects your AI client to this package's authenticated HTTP API. Your application supplies a `Post2SiteAdapter` that maps drafts to its own models and public pages.
+
+```text
+AI client → n2n-post2site (MCP) → Laravel Post2Site (HTTP API)
+                              → your adapter → your database and website
+```
+
+The package handles API keys, staged drafts, selected assets, validation envelopes, and publish confirmation. It is not an install-and-go CMS: installing it alone does not create an article model, a publishing adapter, or public pages. There is no default content adapter.
+
+**Start with [Your first publish](docs/first-publish.md)** to connect a fresh Laravel app, copy a complete text-blog adapter, and publish a real local page. The [runnable example](examples/simple-blog) includes the model, migration, signed preview, and public route; it is separate from the package's default behavior.
 
 ## Requirements
 
-- PHP 8.2+
-- Laravel 12 or 13
+- PHP 8.2+ with Laravel 12, or PHP 8.3+ with Laravel 13 (Laravel's own minimum applies).
+- A Laravel application with a database and a host adapter.
 
 ## Installation
 
 ```bash
 composer require n2ns/laravel-post2site
 php artisan vendor:publish --tag=post2site-config
+```
+
+Implement and bind your [host adapter](#host-adapter), or follow the [first-publish guide](docs/first-publish.md) to use the included example in a fresh app. Set `post2site.bindings.adapter` before calling the API. Then run:
+
+```bash
 php artisan migrate
 php artisan post2site:key "Production MCP"
 ```
 
-Configure your MCP client with:
+In your MCP client's **n2n-post2site server entry**, configure these environment variables:
 
 ```json
 {
@@ -32,7 +46,7 @@ Configure your MCP client with:
 }
 ```
 
-By default, authentication uses API keys stored in `post2site_api_keys`. For local fixtures or controlled environments, `POST2SITE_AUTH_DRIVER=static` can be used with `POST2SITE_API_KEY`.
+These variables configure the Node.js bridge, not Laravel itself. See the [bridge setup instructions](https://github.com/n2ns/n2n-post2site#connect-your-own-website) for the command and client configuration. By default, Laravel authentication uses API keys stored in `post2site_api_keys`. For local fixtures or controlled environments, `POST2SITE_AUTH_DRIVER=static` can be used with `POST2SITE_API_KEY`.
 
 ## Contract
 
@@ -90,7 +104,7 @@ Bind `N2ns\LaravelPost2Site\Contracts\Post2SiteAdapter`:
 
 There is no default content adapter. The package fails fast until the host binds a concrete `Post2SiteAdapter`.
 
-The adapter provides capabilities, site context, editorial policy, inventory, duplicate checks, content validation, asset extraction, selected-asset storage, preview, and publish.
+The adapter provides capabilities, site context, editorial policy, inventory, duplicate checks, content validation, asset extraction, selected-asset storage, preview, and publish. [BlogPostAdapter](examples/simple-blog/app/Post2Site/BlogPostAdapter.php) implements all 11 methods for a create-only text blog. Adapt its model, field rules, and URLs to your existing application; do not bind the test fixture as a real publisher.
 
 Publish requires:
 
@@ -123,6 +137,9 @@ composer pint:test
 
 ## Documentation
 
+- [Your first publish: fresh Laravel app to a real public page](docs/first-publish.md)
+- [Complete text-blog example](examples/simple-blog)
+- [Companion MCP bridge](https://github.com/n2ns/n2n-post2site)
 - [Architecture](docs/architecture.md)
 - [Changelog](CHANGELOG.md)
 - [Contributing](CONTRIBUTING.md)

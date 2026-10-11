@@ -2,6 +2,17 @@
 
 All notable changes to Laravel Post2Site are documented in this file. The format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [Unreleased]
+
+### Added
+
+- Add a first-publish walkthrough and an opt-in text-blog adapter example with persistent public articles, signed previews, and confirmation-flow tests.
+
+### Changed
+
+- Explain the companion MCP bridge, required host adapter, and Laravel-specific PHP requirements before installation.
+- Correct the API-key command's setup hint to use the bridge's `CONTENT_API_KEY` variable.
+
 ## [0.4.0] - 2026-07-02
 
 ### Added
