@@ -64,7 +64,7 @@ The package calls `extractAssetRefs()` after draft create/update and checks that
 
 ## Publish Flow
 
-1. Require `publish_confirmed`.
+1. Require `publish_confirmed` to be JSON `true`.
 2. Run publish-mode validation.
 3. Call `Post2SiteAdapter::publishDraft()`.
 4. Store draft publish state and result.

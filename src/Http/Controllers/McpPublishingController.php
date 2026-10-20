@@ -2,6 +2,7 @@
 
 namespace N2ns\LaravelPost2Site\Http\Controllers;
 
+use Closure;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
@@ -340,7 +341,11 @@ class McpPublishingController extends Controller
     public function publishDraft(Request $request, string $draft_id): JsonResponse
     {
         $data = $this->validate($request, [
-            'publish_confirmed' => ['required', 'accepted'],
+            'publish_confirmed' => ['required', function (string $attribute, mixed $value, Closure $fail): void {
+                if ($value !== true) {
+                    $fail('The publish confirmed field must be true.');
+                }
+            }],
             'acknowledged_warnings' => ['nullable', 'array'],
             'acknowledged_warnings.*' => ['string'],
         ]);
