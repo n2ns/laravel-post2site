@@ -148,17 +148,26 @@ class McpPublishingController extends Controller
         $data = $this->validate($request, [
             'status' => ['nullable', 'string'],
             'per_page' => ['nullable', 'integer', 'min:1'],
+            'cursor' => ['nullable', 'string'],
         ]);
         $perPage = min((int) ($data['per_page'] ?? 20), (int) config('post2site.drafts.per_page_max', 100));
-        $query = Post2SiteDraft::query()->latest();
+        // Draft ids are ULIDs, so descending id order is newest first and doubles as a stable cursor.
+        $query = Post2SiteDraft::query()->orderByDesc('draft_id');
 
         if (isset($data['status'])) {
             $query->where('status', $data['status']);
         }
 
+        if (isset($data['cursor'])) {
+            $query->where('draft_id', '<', $data['cursor']);
+        }
+
+        $page = $query->limit($perPage + 1)->get();
+        $drafts = $page->take($perPage);
+
         return response()->json([
-            'data' => $query->limit($perPage)->get()->map(fn (Post2SiteDraft $draft): array => $this->draftEnvelope($draft))->values(),
-            'next_cursor' => null,
+            'data' => $drafts->map(fn (Post2SiteDraft $draft): array => $this->draftEnvelope($draft))->values(),
+            'next_cursor' => $page->count() > $perPage ? $drafts->last()->draft_id : null,
         ]);
     }
 

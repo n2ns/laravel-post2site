@@ -67,6 +67,8 @@ Inventory:
 
 `target_identifier` may contain `/`; callers should percent-encode it in the URL path.
 
+`GET /drafts` accepts `status`, `per_page`, and `cursor`; pass the returned `next_cursor` as `cursor` to read the next page. It is `null` on the last page.
+
 Drafts and assets:
 
 - `POST /working-drafts/validate`
