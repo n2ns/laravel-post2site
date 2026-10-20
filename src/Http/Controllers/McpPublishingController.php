@@ -17,6 +17,7 @@ use N2ns\LaravelPost2Site\Data\ClientContext;
 use N2ns\LaravelPost2Site\Data\DraftContext;
 use N2ns\LaravelPost2Site\Data\PublishRequest;
 use N2ns\LaravelPost2Site\Data\ValidationResult;
+use N2ns\LaravelPost2Site\LaravelPost2SiteServiceProvider;
 use N2ns\LaravelPost2Site\Models\Post2SiteAsset;
 use N2ns\LaravelPost2Site\Models\Post2SiteDraft;
 use stdClass;
@@ -36,7 +37,7 @@ class McpPublishingController extends Controller
         return $this->json(array_replace_recursive([
             'contract' => 'post2site-publishing',
             'contract_version' => '1.0',
-            'package_version' => config('post2site.version', '0.4.0'),
+            'package_version' => LaravelPost2SiteServiceProvider::VERSION,
             'base_path' => '/'.trim(config('post2site.route_prefix', 'api/v1/mcp'), '/'),
             'workflow' => config('post2site.workflow'),
             'auth' => [

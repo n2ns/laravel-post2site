@@ -4,7 +4,6 @@ use N2ns\LaravelPost2Site\Indexing\CompositeIndexingNotifier;
 use N2ns\LaravelPost2Site\Models\Post2SiteApiKey;
 
 return [
-    'version' => '0.4.0',
     'route_prefix' => env('POST2SITE_ROUTE_PREFIX', 'api/v1/mcp'),
 
     'route_middleware' => ['api'],

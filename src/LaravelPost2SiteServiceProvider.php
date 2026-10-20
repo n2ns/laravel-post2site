@@ -10,6 +10,8 @@ use N2ns\LaravelPost2Site\Contracts\Post2SiteAdapter;
 
 class LaravelPost2SiteServiceProvider extends ServiceProvider
 {
+    public const VERSION = '0.4.0';
+
     public function register(): void
     {
         $this->replaceConfigRecursivelyFrom(__DIR__.'/../config/post2site.php', 'post2site');
