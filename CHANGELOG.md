@@ -4,7 +4,7 @@ All notable changes to Laravel Post2Site are documented in this file. The format
 
 ## [Unreleased]
 
-## [0.5.0] - 2026-10-20
+## [0.4.1] - 2026-10-20
 
 ### Added
 

@@ -1,6 +1,6 @@
 # Laravel Post2Site
 
-[![Version](https://img.shields.io/badge/version-0.5.0-blue.svg)](https://github.com/n2ns/laravel-post2site)
+[![Version](https://img.shields.io/badge/version-0.4.1-blue.svg)](https://github.com/n2ns/laravel-post2site)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](./LICENSE)
 [![PHP Version](https://img.shields.io/badge/PHP-%3E%3D%208.2-8892bf.svg)](https://www.php.net)
 [![Laravel Version Support](https://img.shields.io/badge/Laravel-12%20%7C%2013-red)](https://laravel.com)
