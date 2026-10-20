@@ -3,6 +3,7 @@
 namespace N2ns\LaravelPost2Site\Http\Controllers;
 
 use Closure;
+use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
@@ -18,16 +19,21 @@ use N2ns\LaravelPost2Site\Data\PublishRequest;
 use N2ns\LaravelPost2Site\Data\ValidationResult;
 use N2ns\LaravelPost2Site\Models\Post2SiteAsset;
 use N2ns\LaravelPost2Site\Models\Post2SiteDraft;
+use stdClass;
 
 class McpPublishingController extends Controller
 {
+    private const MAP_FIELDS = ['client_metadata', 'host_metadata', 'metadata', 'details'];
+
+    private const ENVELOPE_FIELDS = ['data', 'validation_state', 'publish_result', 'error'];
+
     public function __construct(private readonly Post2SiteAdapter $adapter) {}
 
     public function capabilities(Request $request): JsonResponse
     {
         $hostCapabilities = $this->adapter->capabilities();
 
-        return response()->json(array_replace_recursive([
+        return $this->json(array_replace_recursive([
             'contract' => 'post2site-publishing',
             'contract_version' => '1.0',
             'package_version' => config('post2site.version', '0.4.0'),
@@ -72,12 +78,12 @@ class McpPublishingController extends Controller
 
     public function siteContext(): JsonResponse
     {
-        return response()->json($this->adapter->siteContext());
+        return $this->json($this->adapter->siteContext());
     }
 
     public function editorialPolicy(): JsonResponse
     {
-        return response()->json($this->adapter->editorialPolicy());
+        return $this->json($this->adapter->editorialPolicy());
     }
 
     public function inventoryResources(Request $request): JsonResponse
@@ -85,7 +91,7 @@ class McpPublishingController extends Controller
         $query = $request->query();
         $query['per_page'] = min((int) ($query['per_page'] ?? 20), (int) config('post2site.drafts.per_page_max', 100));
 
-        return response()->json($this->adapter->inventory($query)->toArray());
+        return $this->json($this->adapter->inventory($query)->toArray());
     }
 
     public function inventoryResource(string $target_identifier): JsonResponse
@@ -95,12 +101,12 @@ class McpPublishingController extends Controller
 
         return $item === null
             ? $this->error('not_found', 'The requested resource was not found.', 404)
-            : response()->json(['item' => $item, 'host_metadata' => $result->hostMetadata]);
+            : $this->json(['item' => $item, 'host_metadata' => $result->hostMetadata]);
     }
 
     public function inventoryStats(Request $request): JsonResponse
     {
-        return response()->json($this->adapter->inventoryStats($request->query()));
+        return $this->json($this->adapter->inventoryStats($request->query()));
     }
 
     public function inventoryDuplicates(Request $request): JsonResponse
@@ -112,7 +118,7 @@ class McpPublishingController extends Controller
             'client_metadata' => ['nullable', 'array'],
         ]);
 
-        return response()->json($this->adapter->findDuplicates($data)->toArray());
+        return $this->json($this->adapter->findDuplicates($data)->toArray());
     }
 
     public function validateWorkingDraft(Request $request): JsonResponse
@@ -140,7 +146,7 @@ class McpPublishingController extends Controller
             status: 'working',
         );
 
-        return response()->json($this->validateContext($context, $data['mode'] ?? 'draft')->toArray($data['mode'] ?? 'draft'));
+        return $this->json($this->validateContext($context, $data['mode'] ?? 'draft')->toArray($data['mode'] ?? 'draft'));
     }
 
     public function drafts(Request $request): JsonResponse
@@ -165,7 +171,7 @@ class McpPublishingController extends Controller
         $page = $query->limit($perPage + 1)->get();
         $drafts = $page->take($perPage);
 
-        return response()->json([
+        return $this->json([
             'data' => $drafts->map(fn (Post2SiteDraft $draft): array => $this->draftEnvelope($draft))->values(),
             'next_cursor' => $page->count() > $perPage ? $drafts->last()->draft_id : null,
         ]);
@@ -201,7 +207,7 @@ class McpPublishingController extends Controller
         $validation = $this->validateContext($this->draftContext($draft), 'draft');
         $draft->forceFill(['validation_state' => $validation->toArray('draft')])->save();
 
-        return response()->json($this->draftEnvelope($draft->refresh()), 201);
+        return $this->json($this->draftEnvelope($draft->refresh()), 201);
     }
 
     public function showDraft(string $draft_id): JsonResponse
@@ -210,7 +216,7 @@ class McpPublishingController extends Controller
 
         return $draft === null
             ? $this->error('not_found', 'The requested draft was not found.', 404)
-            : response()->json($this->draftEnvelope($draft));
+            : $this->json($this->draftEnvelope($draft));
     }
 
     public function updateDraft(Request $request, string $draft_id): JsonResponse
@@ -248,7 +254,7 @@ class McpPublishingController extends Controller
         $validation = $this->validateContext($this->draftContext($draft->refresh()), 'draft');
         $draft->forceFill(['validation_state' => $validation->toArray('draft')])->save();
 
-        return response()->json($this->draftEnvelope($draft->refresh()));
+        return $this->json($this->draftEnvelope($draft->refresh()));
     }
 
     public function validateDraft(Request $request, string $draft_id): JsonResponse
@@ -266,7 +272,7 @@ class McpPublishingController extends Controller
         $validation = $this->validateContext($this->draftContext($draft), $mode);
         $draft->forceFill(['validation_state' => $validation->toArray($mode)])->save();
 
-        return response()->json($validation->toArray($mode));
+        return $this->json($validation->toArray($mode));
     }
 
     public function previewDraft(string $draft_id): JsonResponse
@@ -276,7 +282,7 @@ class McpPublishingController extends Controller
             return $this->error('not_found', 'The requested draft was not found.', 404);
         }
 
-        return response()->json($this->adapter->previewDraft($this->draftContext($draft))->toArray($draft->draft_id));
+        return $this->json($this->adapter->previewDraft($this->draftContext($draft))->toArray($draft->draft_id));
     }
 
     public function storeAsset(Request $request): JsonResponse
@@ -348,7 +354,7 @@ class McpPublishingController extends Controller
             ],
         );
 
-        return response()->json($result->toArray(), 201);
+        return $this->json($result->toArray(), 201);
     }
 
     public function publishDraft(Request $request, string $draft_id): JsonResponse
@@ -382,7 +388,7 @@ class McpPublishingController extends Controller
         if ($validation->blockers !== []) {
             $draft->forceFill(['validation_state' => $validation->toArray('publish')])->save();
 
-            return response()->json($validation->toArray('publish'), 422);
+            return $this->json($validation->toArray('publish'), 422);
         }
 
         $result = $this->adapter->publishDraft($context, new PublishRequest(
@@ -403,7 +409,7 @@ class McpPublishingController extends Controller
             'validation_state' => $validation->toArray('publish'),
         ])->save();
 
-        return response()->json($response);
+        return $this->json($response);
     }
 
     private function validateDraftPayload(Request $request, bool $creating): array
@@ -528,7 +534,7 @@ class McpPublishingController extends Controller
 
     private function validationResult(string $mode, bool $publishable, array $blockers): JsonResponse
     {
-        return response()->json([
+        return $this->json([
             'mode' => $mode,
             'publishable' => $publishable,
             'blockers' => $blockers,
@@ -550,9 +556,43 @@ class McpPublishingController extends Controller
         ];
     }
 
+    private function json(mixed $data, int $status = 200): JsonResponse
+    {
+        return response()->json($this->emptyMapsAsObjects($data), $status);
+    }
+
+    /**
+     * PHP encodes an empty array as a JSON list; contract map fields must stay JSON objects.
+     * Only package envelopes are walked, so host-defined payloads are returned unchanged.
+     */
+    private function emptyMapsAsObjects(mixed $value): mixed
+    {
+        if ($value instanceof Arrayable) {
+            $value = $value->toArray();
+        }
+
+        if (! is_array($value)) {
+            return $value;
+        }
+
+        if (array_is_list($value)) {
+            return array_map(fn (mixed $item): mixed => $this->emptyMapsAsObjects($item), $value);
+        }
+
+        foreach ($value as $key => $child) {
+            if (in_array($key, self::MAP_FIELDS, true) && $child === []) {
+                $value[$key] = new stdClass;
+            } elseif (in_array($key, self::ENVELOPE_FIELDS, true)) {
+                $value[$key] = $this->emptyMapsAsObjects($child);
+            }
+        }
+
+        return $value;
+    }
+
     private function error(string $code, string $message, int $status, ?string $field = null, array $details = []): JsonResponse
     {
-        return response()->json([
+        return $this->json([
             'error' => [
                 'code' => $code,
                 'message' => $message,

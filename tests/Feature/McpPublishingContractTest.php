@@ -262,6 +262,19 @@ class McpPublishingContractTest extends TestCase
         $this->assertStringNotContainsString('_metadata":[]', $content);
     }
 
+    public function test_host_content_payload_lists_are_not_rewritten_as_objects(): void
+    {
+        $content = $this->api()
+            ->postJson('/api/v1/mcp/drafts', [
+                'mode' => 'create',
+                'content_payload' => ['body' => 'Ready', 'metadata' => [], 'details' => []],
+            ])
+            ->assertCreated()
+            ->getContent();
+
+        $this->assertStringContainsString('"content_payload":{"body":"Ready","metadata":[],"details":[]}', $content);
+    }
+
     public function test_capabilities_report_installed_package_version_not_published_config(): void
     {
         config()->set('post2site.version', '0.0.1');
