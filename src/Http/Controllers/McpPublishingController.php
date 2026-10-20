@@ -145,11 +145,15 @@ class McpPublishingController extends Controller
 
     public function drafts(Request $request): JsonResponse
     {
-        $perPage = min($request->integer('per_page', 20), (int) config('post2site.drafts.per_page_max', 100));
+        $data = $this->validate($request, [
+            'status' => ['nullable', 'string'],
+            'per_page' => ['nullable', 'integer', 'min:1'],
+        ]);
+        $perPage = min((int) ($data['per_page'] ?? 20), (int) config('post2site.drafts.per_page_max', 100));
         $query = Post2SiteDraft::query()->latest();
 
-        if ($request->filled('status')) {
-            $query->where('status', $request->string('status'));
+        if (isset($data['status'])) {
+            $query->where('status', $data['status']);
         }
 
         return response()->json([
