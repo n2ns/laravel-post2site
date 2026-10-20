@@ -4,6 +4,8 @@ All notable changes to Laravel Post2Site are documented in this file. The format
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-10-20
+
 ### Added
 
 - Add a first-publish walkthrough and an opt-in text-blog adapter example with persistent public articles, signed previews, and confirmation-flow tests.
@@ -12,6 +14,14 @@ All notable changes to Laravel Post2Site are documented in this file. The format
 
 - Explain the companion MCP bridge, required host adapter, and Laravel-specific PHP requirements before installation.
 - Correct the API-key command's setup hint to use the bridge's `CONTENT_API_KEY` variable.
+- `publish_confirmed` must be JSON `true`; other accepted-style values such as `"yes"`, `"on"`, `"1"`, and `1` are rejected.
+- `GET /drafts` rejects non-integer or non-positive `per_page` values instead of returning every draft or an empty page.
+- `capabilities.package_version` comes from the installed package; the `version` entry is removed from the publishable config, so a previously published config no longer reports a stale version.
+
+### Fixed
+
+- `GET /drafts` returns a real `next_cursor` and accepts it as `cursor`; previously `next_cursor` was always `null` even when more drafts existed.
+- Empty `client_metadata`, `host_metadata`, `metadata`, and `details` maps in package responses are encoded as JSON objects (`{}`) instead of lists (`[]`).
 
 ## [0.4.0] - 2026-07-02
 

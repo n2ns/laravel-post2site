@@ -10,7 +10,7 @@ use N2ns\LaravelPost2Site\Contracts\Post2SiteAdapter;
 
 class LaravelPost2SiteServiceProvider extends ServiceProvider
 {
-    public const VERSION = '0.4.0';
+    public const VERSION = '0.5.0';
 
     public function register(): void
     {
