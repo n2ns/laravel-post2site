@@ -2,7 +2,7 @@
     "name": "n2ns/laravel-post2site",
     "description": "Laravel backend package for the N2N Post2Site Content Publishing API Contract.",
     "type": "library",
-    "license": "MIT",
+    "license": "Apache-2.0",
     "funding": [
         {
             "type": "github",
