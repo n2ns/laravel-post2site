@@ -1,7 +1,8 @@
 # Laravel Post2Site
 
-[![Version](https://img.shields.io/badge/version-0.4.1-blue.svg)](https://github.com/n2ns/laravel-post2site)
-[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](./LICENSE)
+[![Packagist version](https://img.shields.io/packagist/v/n2ns/laravel-post2site)](https://packagist.org/packages/n2ns/laravel-post2site)
+[![Packagist downloads](https://img.shields.io/packagist/dt/n2ns/laravel-post2site)](https://packagist.org/packages/n2ns/laravel-post2site)
+[![license](https://img.shields.io/github/license/n2ns/laravel-post2site)](https://github.com/n2ns/laravel-post2site/blob/main/LICENSE)
 [![PHP Version](https://img.shields.io/badge/PHP-%3E%3D%208.2-8892bf.svg)](https://www.php.net)
 [![Laravel Version Support](https://img.shields.io/badge/Laravel-12%20%7C%2013-red)](https://laravel.com)
 
